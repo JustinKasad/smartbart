@@ -16,6 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+var timesArray = [];
+var scroller;
+
 var app = {
     // Application Constructor
     initialize: function() {
@@ -46,10 +49,17 @@ var app = {
                     });
       }
 
-        mobiscroll.scroller('#bartInput', {
+        scroller = mobiscroll.scroller('#bartInput', {
             theme: 'mobiscroll-dark',
             display: 'inline',
-             showLabel: true,
+            showLabel: true,
+            circular: true,
+            cssClass: 'bartSpinner',
+            onShow: function(){
+                        var height = $(window).height() - $('.bartSpinner').height();
+                        $('.toolbar-through .page-content').css('height', height);
+
+                    },
             wheels: [
                 [{
                     label: 'Departs',
@@ -60,22 +70,27 @@ var app = {
                 },]
             ]
         });
+        setTimeout(function(){
+              if(localStorage && localStorage.getItem('stations')){
+                  var stationsArray = localStorage.getItem('stations').split(' ');
+                  scroller.setArrayVal(stationsArray, true, true, false);
+              } else {
+                  scroller.setArrayVal(["12TH", "16TH"], true, true, false);
+              }
+        }, 200)
 
 
-
-        $('#bartInput').on('change', function(){
-            app.fetchTrainTimes($(this).val());
-        })
+        app.setEvents();
 
 
     },
 
     fetchTrainTimes: function(times){
-        var stations = times.split(' ');
-        if(stations[0] == stations[1]){
+        var s = times.split(' ');
+        if(s[0] == s[1]){
             return;
         }
-        var url = "http://api.bart.gov/api/sched.aspx?cmd=depart&b=4&a=4&orig="+stations[0]+"&dest="+stations[1]+"&key=MW9S-E7SL-26DU-VV8V"
+        var url = "http://api.bart.gov/api/sched.aspx?cmd=depart&b=4&a=4&orig="+s[0]+"&dest="+s[1]+"&key=MW9S-E7SL-26DU-VV8V"
         $.ajax({
                  type: "GET",
                  url: url,
@@ -84,16 +99,39 @@ var app = {
                  contentType: "text/xml; charset=\"utf-8\"",
                  complete: function(xml) {
                     var result = xmlToJSON.parseString(xml.responseText);
-                    app.displayTimes(result.root["0"].schedule["0"].request["0"].trip);
+                    timesArray = result.root["0"].schedule["0"].request["0"].trip;
+                    app.displayTimes(timesArray);
                  }
             });
 
     },
     displayTimes: function(trips){
-        console.log(trips);
-        $('.times').empty()
+        $('.times ul').empty()
+        var i = 0;
         $.each(trips, function(key, val){
-            $('.times').append('<p>' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</p>')
+            var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time" data-index='+i+'><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">'+val._attr.tripTime._value+'m';
+            i++;
+
+            if(val.leg.length > 1){
+                html += '<span class="exclamation">!</span>';
+            }
+            html += '</div></div></a></li>';
+            $('.times ul').append(html)
         })
+    },
+    displayTrainData: function(i){
+
+    },
+    setEvents: function(){
+        $('body').on('click', '.time', function(){
+            var index = $(this).attr('data-index');
+            console.log(JSON.stringify(timesArray[index]));
+        })
+        $('#bartInput').on('change', function(){
+            var s = $(this).val();
+            localStorage.setItem('stations', s);
+            app.fetchTrainTimes(s);
+        })
+
     }
 };
