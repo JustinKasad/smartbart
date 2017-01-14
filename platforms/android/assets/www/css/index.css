@@ -140,3 +140,11 @@ h1 {
     padding-left: 5px;
     font-weight: bold;
 }
+
+.spinner {
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -21px;
+}
