@@ -145,14 +145,16 @@ var app = {
             html += '</div></div></a></li>';
             originArray.push(val._attr.origTimeMin._value);
             $('.times ul').append(html);
-        })
+        });
+        $('.infinite-scroll-preloader').show();
     },
     addDisplayTimes: function(trips){
         var i = 0;
-        if($('.times ul li:last-child').find('.item-title').text() == trips[trips.length - 1]._attr.origTimeMin._value + ' - ' + trips[trips.length - 1]._attr.destTimeMin._value){
-            myApp.detachInfiniteScroll($$('.infinite-scroll'));
-            return;
-        }
+        var noneWereAdded = true;
+//        if($('.times ul li:last-child').find('.item-title').text() == trips[trips.length - 1]._attr.origTimeMin._value + ' - ' + trips[trips.length - 1]._attr.destTimeMin._value){
+//            myApp.detachInfiniteScroll($$('.infinite-scroll'));
+//            return;
+//        }
         $.each(trips, function(key, val){
             var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time" data-index='+i+'><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">'+val._attr.tripTime._value+'m';
             i++;
@@ -164,10 +166,14 @@ var app = {
             if($.inArray(val._attr.origTimeMin._value, originArray) == -1){
                 originArray.push(val._attr.origTimeMin._value)
                 $('.times ul').append(html)
+                noneWereAdded = false;
             }
 
         });
         arrayToDisplay = [];
+        if(noneWereAdded){
+            $('.infinite-scroll-preloader').hide();
+        }
 
     },
     addPreviousDisplayTimes: function(trips){
@@ -209,10 +215,10 @@ var app = {
             $('.spinner').fadeIn();
             myApp.attachInfiniteScroll($$('.infinite-scroll'));
 
-            $.when( app.fetchTrainTimes(s, '9:00am', 4, 4) ).then(function( data, a, xml ) {
+            $.when( app.fetchTrainTimes(s, 'now', 4, 4) ).then(function( data, a, xml ) {
                 var result = xmlToJSON.parseString(xml.responseText);
                 timesArray.push.apply(timesArray, result.root["0"].schedule["0"].request["0"].trip);
-                $.when( app.fetchTrainTimes(s, app.getNextTrainStartTime(timesArray), 0, 4) ).then(function( data, a, xml ) {
+                $.when( app.fetchTrainTimes(s, app.getNextTrainStartTime(timesArray, 'add'), 0, 4) ).then(function( data, a, xml ) {
                     var result = xmlToJSON.parseString(xml.responseText);
                     timesArray.push.apply(timesArray, result.root["0"].schedule["0"].request["0"].trip);
                     app.displayTimes(timesArray);
@@ -230,13 +236,12 @@ var app = {
             setTimeout(function () {
               // Reset loading flag
                 bottomLoading = false;
-                console.log('bottom');
-                $.when( app.fetchTrainTimes(currentStations, app.getNextTrainStartTime(timesArray), 0, 4) ).then(function( data, a, xml ) {
+                $.when( app.fetchTrainTimes(currentStations, app.getNextTrainStartTime(timesArray, 'add'), 0, 4) ).then(function( data, a, xml ) {
                     var result = xmlToJSON.parseString(xml.responseText);
                     var clone = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip))
                     arrayToDisplay.push.apply(arrayToDisplay, result.root["0"].schedule["0"].request["0"].trip);
                     timesArray.push.apply(timesArray, clone);
-                    $.when( app.fetchTrainTimes(currentStations, app.getNextTrainStartTime(timesArray), 0, 4) ).then(function( data, a, xml ) {
+                    $.when( app.fetchTrainTimes(currentStations, app.getNextTrainStartTime(timesArray, 'add'), 0, 4) ).then(function( data, a, xml ) {
                         var result = xmlToJSON.parseString(xml.responseText);
                         var clone2 = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip));
                         arrayToDisplay.push.apply(arrayToDisplay, result.root["0"].schedule["0"].request["0"].trip);
@@ -246,14 +251,13 @@ var app = {
                 });
             }, 1000);
         });
-        $('.pull-to-refresh-content').on('ptr:refresh', function () {console.log('pulling');
-            $.when( app.fetchTrainTimes(currentStations, app.getPreviousTrainStartTime(timesArray), 4, 0) ).then(function( data, a, xml ) {
+        $('.pull-to-refresh-content').on('ptr:refresh', function () {
+            $.when( app.fetchTrainTimes(currentStations, app.getNextTrainStartTime(timesArray, 'previous'), 4, 0) ).then(function( data, a, xml ) {
                 var result = xmlToJSON.parseString(xml.responseText);
                 var clone = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip))
-                console.log(arrayToDisplay.length);
                 arrayToDisplay = $.merge(result.root["0"].schedule["0"].request["0"].trip, arrayToDisplay);
                 timesArray = $.merge(clone, timesArray);
-                $.when( app.fetchTrainTimes(currentStations, app.getPreviousTrainStartTime(timesArray), 4, 0) ).then(function( data, a, xml ) {
+                $.when( app.fetchTrainTimes(currentStations, app.getNextTrainStartTime(timesArray, 'previous'), 4, 0) ).then(function( data, a, xml ) {
                     var result = xmlToJSON.parseString(xml.responseText);
                     var clone2 = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip));
                     arrayToDisplay = $.merge(result.root["0"].schedule["0"].request["0"].trip, arrayToDisplay);
@@ -267,46 +271,39 @@ var app = {
 
 
     },
-    getNextTrainStartTime: function(t){
+    getNextTrainStartTime: function(t, state){
         t = t[t.length - 1]._attr.origTimeMin._value;
+        console.log(t);
         t = t.split(" ");
         var temp = t[0].split(':');
-        if(parseInt(temp[1]) == 59){
-            temp[0] = parseInt(temp[0]) + 1;
-        } else {
-            temp[1] = parseInt(temp[1]) + 1;
-            if(temp[1].toString().length == 1){
-                temp[1] =  "0" + temp[1].toString()
-            }
-        }
-        if(temp[0] == 13) temp[0] = 1;
-        if(temp[0] == 12) t[1] = 'pm';
-        return temp.join(':') + t[1].toString().toLowerCase();
 
-    },
-    getPreviousTrainStartTime: function(t){
-        t = t[0]._attr.origTimeMin._value;
-        t = t.split(" ");
-        var temp = t[0].split(':');
-        if(parseInt(temp[1]) == 0){
-            temp[0] = parseInt(temp[0]) - 1;
+        var d = new Date();
+        if(t[1].toLowerCase() == 'pm'){
+            d.setHours(parseInt(temp[0]) + 11);
         } else {
-            temp[1] = parseInt(temp[1]) - 1;
-            if(temp[1].toString().length == 1){
-                temp[1] =  "0" + temp[1].toString()
-            }
+            d.setHours(temp[0] - 1);
         }
-        if(temp[0] == 0) {
-            temp[0] = 12;
+        d.setMinutes(temp[1]);
+        if(state == 'add'){
+            var newDateObj = new Date(d.getTime() + 60000);
+        } else {
+            var newDateObj = new Date(d.getTime() - 60000);
         }
-        if(temp[0] == 11) {
-            t[1] = 'am';
+
+        var h = newDateObj.getHours();
+        var m = newDateObj.getMinutes();
+        var end = 'am';
+        h++;
+        if(h > 12){
+            h = h - 12;
+            end = 'pm';
         }
-        return temp.join(':') + t[1].toString().toLowerCase();
+        console.log(h + ":" + m + " " + end);
+
+        return h + ":" + m + " " + end;
 
     },
     checklastTrain: function(time){
-        console.log("lastTrain: " + time)
         time = time.split(' ');
         var temp = time[0].split(':');
         if(time[1].toLowerCase() == 'am' && (parseInt(temp[0]) == 12 || parseInt(temp[0]) == 1)){
