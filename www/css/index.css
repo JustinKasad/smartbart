@@ -116,6 +116,7 @@ h1 {
 .times {
     font-size: 18px;
     margin-top: 0px;
+    margin-bottom: 0px;
 }
 
 #bartInput {
@@ -147,4 +148,17 @@ h1 {
     left: 50%;
     top: 50%;
     margin-left: -21px;
+}
+.page-content {
+    padding-bottom: 0 !important;
+}
+
+.infinite-scroll-preloader {
+  margin-top:0px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.infinite-scroll-preloader .preloader {
+  width:25px;
+  height:25px;
 }

@@ -19,7 +19,10 @@
 var timesArray = [];
 var scroller;
 var count = 0;
-
+var bottomLoading = false;
+var arrayToDisplay = [];
+var currentStations = [];
+var originArray = [];
 var app = {
     // Application Constructor
     initialize: function() {
@@ -86,43 +89,46 @@ var app = {
 
     },
 
-    fetchTrainTimes: function(times, start){
+    fetchTrainTimes: function(times, start, before, after){
         var s = times.split(' ');
         if(s[0] == s[1]){
             return;
         }
-        var url = "http://api.bart.gov/api/sched.aspx?cmd=depart&b=0&a=4&orig="+s[0]+"&dest="+s[1]+"&time="+start+"&key=MW9S-E7SL-26DU-VV8V"
-        $.ajax({
+        var url = "http://api.bart.gov/api/sched.aspx?cmd=depart&b="+before+"&a="+after+"&orig="+s[0]+"&dest="+s[1]+"&time="+start+"&key=MW9S-E7SL-26DU-VV8V"
+        return $.ajax({
                  type: "GET",
                  url: url,
                  dataType: "xml",
                  async: false,
-                 contentType: "text/xml; charset=\"utf-8\"",
-                 complete: function(xml) {
-                    var result = xmlToJSON.parseString(xml.responseText);
-
-                    timesArray.push.apply(timesArray, result.root["0"].schedule["0"].request["0"].trip);
-                    if( app.checklastTrain(result.root["0"].schedule["0"].request["0"].trip[3]._attr.origTimeMin._value)){
-                        app.displayTimes(timesArray);
-                    } else {
-                        var newTime = result.root["0"].schedule["0"].request["0"].trip[3]._attr.origTimeMin._value;
-                        newTime = newTime.split(" ");
-                        var temp = newTime[0].split(':');
-                        if(parseInt(temp[1]) == 59){
-                            temp[0] = parseInt(temp[0]) + 1;
-                        } else {
-                            temp[1] = parseInt(temp[1]) + 1;
-                            if(temp[1].toString().length == 1){
-                                temp[1] =  "0" + temp[1].toString()
-                            }
-                        }
-                        newTime = temp.join(':') + newTime[1].toString().toLowerCase();
-                        setTimeout(function(){
-                            app.fetchTrainTimes(times, newTime);
-                        }, 200)
-                    }
-
-                 }
+                 contentType: "text/xml; charset=\"utf-8\""
+//                 complete: function(xml) {
+//                    var result = xmlToJSON.parseString(xml.responseText);
+//                    return result.root["0"].schedule["0"].request["0"].trip;
+//
+//
+//
+//                    timesArray.push.apply(timesArray, result.root["0"].schedule["0"].request["0"].trip);
+//                    if( app.checklastTrain(result.root["0"].schedule["0"].request["0"].trip[3]._attr.origTimeMin._value)){
+//                        app.displayTimes(timesArray);
+//                    } else {
+//                        var newTime = result.root["0"].schedule["0"].request["0"].trip[3]._attr.origTimeMin._value;
+//                        newTime = newTime.split(" ");
+//                        var temp = newTime[0].split(':');
+//                        if(parseInt(temp[1]) == 59){
+//                            temp[0] = parseInt(temp[0]) + 1;
+//                        } else {
+//                            temp[1] = parseInt(temp[1]) + 1;
+//                            if(temp[1].toString().length == 1){
+//                                temp[1] =  "0" + temp[1].toString()
+//                            }
+//                        }
+//                        newTime = temp.join(':') + newTime[1].toString().toLowerCase();
+//                        setTimeout(function(){
+//                            app.fetchTrainTimes(times, newTime);
+//                        }, 200)
+//                    }
+//
+//                 }
             });
 
     },
@@ -137,8 +143,54 @@ var app = {
                 html += '<span class="exclamation">!</span>';
             }
             html += '</div></div></a></li>';
-            $('.times ul').append(html)
+            originArray.push(val._attr.origTimeMin._value);
+            $('.times ul').append(html);
         })
+    },
+    addDisplayTimes: function(trips){
+        var i = 0;
+        if($('.times ul li:last-child').find('.item-title').text() == trips[trips.length - 1]._attr.origTimeMin._value + ' - ' + trips[trips.length - 1]._attr.destTimeMin._value){
+            myApp.detachInfiniteScroll($$('.infinite-scroll'));
+            return;
+        }
+        $.each(trips, function(key, val){
+            var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time" data-index='+i+'><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">'+val._attr.tripTime._value+'m';
+            i++;
+
+            if(val.leg.length > 1){
+                html += '<span class="exclamation">!</span>';
+            }
+            html += '</div></div></a></li>';
+            if($.inArray(val._attr.origTimeMin._value, originArray) == -1){
+                originArray.push(val._attr.origTimeMin._value)
+                $('.times ul').append(html)
+            }
+
+        });
+        arrayToDisplay = [];
+
+    },
+    addPreviousDisplayTimes: function(trips){
+        var i = 0;
+        if($('.times ul li:first-child').find('.item-title').text() == trips[0]._attr.origTimeMin._value + ' - ' + trips[0]._attr.destTimeMin._value){
+            myApp.destroyPullToRefresh($$('.pull-to-refresh-content'));
+            return;
+        }
+        $.each(trips.reverse(), function(key, val){
+            var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time" data-index='+i+'><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">'+val._attr.tripTime._value+'m';
+            i++;
+
+            if(val.leg.length > 1){
+                html += '<span class="exclamation">!</span>';
+            }
+            html += '</div></div></a></li>';
+            if($.inArray(val._attr.origTimeMin._value, originArray) == -1){
+                originArray.push(val._attr.origTimeMin._value)
+                $('.times ul').prepend(html)
+            }
+        });
+        arrayToDisplay = [];
+
     },
     displayTrainData: function(i){
 
@@ -147,15 +199,110 @@ var app = {
         $('body').on('click', '.time', function(){
             var index = $(this).attr('data-index');
             console.log(JSON.stringify(timesArray[index]));
-        })
+        });
         $('#bartInput').on('change', function(){
-            var s = $(this).val();
+            var s = currentStations = $(this).val();
             localStorage.setItem('stations', s);
             timesArray = [];
+            originArray = [];
             $('.times ul').empty();
             $('.spinner').fadeIn();
-            app.fetchTrainTimes(s, '4:00am');
-        })
+            myApp.attachInfiniteScroll($$('.infinite-scroll'));
+
+            $.when( app.fetchTrainTimes(s, '9:00am', 4, 4) ).then(function( data, a, xml ) {
+                var result = xmlToJSON.parseString(xml.responseText);
+                timesArray.push.apply(timesArray, result.root["0"].schedule["0"].request["0"].trip);
+                $.when( app.fetchTrainTimes(s, app.getNextTrainStartTime(timesArray), 0, 4) ).then(function( data, a, xml ) {
+                    var result = xmlToJSON.parseString(xml.responseText);
+                    timesArray.push.apply(timesArray, result.root["0"].schedule["0"].request["0"].trip);
+                    app.displayTimes(timesArray);
+                });
+            });
+        });
+
+        $('.infinite-scroll').on('infinite', function () {
+            if (bottomLoading) return;
+
+            // Set loading flag
+            bottomLoading = true;
+
+            // Emulate 1s loading
+            setTimeout(function () {
+              // Reset loading flag
+                bottomLoading = false;
+                console.log('bottom');
+                $.when( app.fetchTrainTimes(currentStations, app.getNextTrainStartTime(timesArray), 0, 4) ).then(function( data, a, xml ) {
+                    var result = xmlToJSON.parseString(xml.responseText);
+                    var clone = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip))
+                    arrayToDisplay.push.apply(arrayToDisplay, result.root["0"].schedule["0"].request["0"].trip);
+                    timesArray.push.apply(timesArray, clone);
+                    $.when( app.fetchTrainTimes(currentStations, app.getNextTrainStartTime(timesArray), 0, 4) ).then(function( data, a, xml ) {
+                        var result = xmlToJSON.parseString(xml.responseText);
+                        var clone2 = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip));
+                        arrayToDisplay.push.apply(arrayToDisplay, result.root["0"].schedule["0"].request["0"].trip);
+                        timesArray.push.apply(timesArray, clone2);
+                        app.addDisplayTimes(arrayToDisplay);
+                    });
+                });
+            }, 1000);
+        });
+        $('.pull-to-refresh-content').on('ptr:refresh', function () {console.log('pulling');
+            $.when( app.fetchTrainTimes(currentStations, app.getPreviousTrainStartTime(timesArray), 4, 0) ).then(function( data, a, xml ) {
+                var result = xmlToJSON.parseString(xml.responseText);
+                var clone = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip))
+                console.log(arrayToDisplay.length);
+                arrayToDisplay = $.merge(result.root["0"].schedule["0"].request["0"].trip, arrayToDisplay);
+                timesArray = $.merge(clone, timesArray);
+                $.when( app.fetchTrainTimes(currentStations, app.getPreviousTrainStartTime(timesArray), 4, 0) ).then(function( data, a, xml ) {
+                    var result = xmlToJSON.parseString(xml.responseText);
+                    var clone2 = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip));
+                    arrayToDisplay = $.merge(result.root["0"].schedule["0"].request["0"].trip, arrayToDisplay);
+                    timesArray = $.merge(clone2, timesArray);
+                    app.addPreviousDisplayTimes(arrayToDisplay);
+                    myApp.pullToRefreshDone();
+
+                });
+            });
+        });
+
+
+    },
+    getNextTrainStartTime: function(t){
+        t = t[t.length - 1]._attr.origTimeMin._value;
+        t = t.split(" ");
+        var temp = t[0].split(':');
+        if(parseInt(temp[1]) == 59){
+            temp[0] = parseInt(temp[0]) + 1;
+        } else {
+            temp[1] = parseInt(temp[1]) + 1;
+            if(temp[1].toString().length == 1){
+                temp[1] =  "0" + temp[1].toString()
+            }
+        }
+        if(temp[0] == 13) temp[0] = 1;
+        if(temp[0] == 12) t[1] = 'pm';
+        return temp.join(':') + t[1].toString().toLowerCase();
+
+    },
+    getPreviousTrainStartTime: function(t){
+        t = t[0]._attr.origTimeMin._value;
+        t = t.split(" ");
+        var temp = t[0].split(':');
+        if(parseInt(temp[1]) == 0){
+            temp[0] = parseInt(temp[0]) - 1;
+        } else {
+            temp[1] = parseInt(temp[1]) - 1;
+            if(temp[1].toString().length == 1){
+                temp[1] =  "0" + temp[1].toString()
+            }
+        }
+        if(temp[0] == 0) {
+            temp[0] = 12;
+        }
+        if(temp[0] == 11) {
+            t[1] = 'am';
+        }
+        return temp.join(':') + t[1].toString().toLowerCase();
 
     },
     checklastTrain: function(time){
