@@ -43,6 +43,7 @@
 
     <link rel="stylesheet" href="framework-css/framework7.ios.min.css">
     <link rel="stylesheet" href="css/my-app.css">
+    <link rel="stylesheet" href="css/font-awesome.css">
 
     <script src="mobi-js/mobiscroll.dom.js"></script>
     <script src="mobi-js/mobiscroll.core.js"></script>
@@ -108,10 +109,12 @@
             <div data-page="index" class="navbar-inner">
                 <!-- We have home navbar without left link-->
                 <div class="left">
-                    <!-- Right link contains only icon - additional "icon-only" class--><a href="#" class="link icon-only open-panel"> <i class="icon icon-bars"></i></a>
+                    <!-- Right link contains only icon - additional "icon-only" class--><a href="#" class="link icon-only open-panel">  <i class="fa fa-bars"></i></a>
                 </div>
-                <div class="center sliding">Next Bart Train</div>
-
+                <div class="center sliding">Smart Bart</div>
+                <div class="right">
+                    <!-- Right link contains only icon - additional "icon-only" class--><a href="#" class="link icon-only reverseTrip"> <i class="fa fa-exchange"></i></a>
+                </div>
             </div>
             <!-- Navbar inner for About page-->
             <div data-page="about" class="navbar-inner cached">
@@ -163,7 +166,6 @@
                     <div class="infinite-scroll-preloader">
                         <div class="preloader"></div>
                     </div>
-                    <span style="width:42px; height:42px" class="preloader spinner"></span>
                     <!--<div class="content-block-title">What about simple navigation?</div>-->
                     <!--<div class="list-block">-->
                         <!--<ul>-->

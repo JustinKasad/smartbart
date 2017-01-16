@@ -16,6 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
+
 * {
     -webkit-tap-highlight-color: rgba(0,0,0,0); /* make transparent link selection, adjust last value opacity 0 to 1.0 */
 }
@@ -108,10 +110,18 @@ h1 {
     position: fixed;
 }
 .mbsc-fr-inline .mbsc-sc-itm {
-    font-size: 12px;
+    font-size: 15px;
+}
+@media screen and (max-width:374px) {
+    .mbsc-fr-inline .mbsc-sc-itm {
+        font-size: 12px;
+    }
 }
 .list-block .item-after {
     text-transform:lowercase;
+}
+.list-block li {
+    background: #f5f5f5;
 }
 .times {
     font-size: 18px;
@@ -152,6 +162,9 @@ h1 {
 .page-content {
     padding-bottom: 0 !important;
 }
+.page-content.loading {
+    opacity: .3;
+}
 
 .infinite-scroll-preloader {
   margin-top:0px;
@@ -161,4 +174,36 @@ h1 {
 .infinite-scroll-preloader .preloader {
   width:25px;
   height:25px;
+}
+.pull-to-refresh-layer .pull-to-refresh-arrow {
+    background-image: none;
+    transform: initial;
+    width: 180px;
+    text-align: center;
+    margin-left: -90px;
+}
+.pull-to-refresh-layer .pull-to-refresh-arrow:after {
+    content: "Get Earlier Times";
+    font-size: 14px;
+}
+.pull-to-refresh-content.pull-up .pull-to-refresh-arrow {
+    transform: initial;
+}
+
+.navbar {
+    background: #292829;
+}
+.navbar .center {
+    color: white;
+    font-weight: normal !important;
+}
+.navbar .fa {
+    color: #31b6e7;
+}
+i.fa.fa-subway {
+    color: black;
+    padding: 4px 4px 0;
+}
+i.fa.fa-subway:last-child {
+    margin-right: 10px;
 }

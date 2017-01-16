@@ -54,7 +54,7 @@ var app = {
       }
 
         scroller = mobiscroll.scroller('#bartInput', {
-            theme: 'mobiscroll-dark',
+            theme: 'android-holo',
             display: 'inline',
             showLabel: true,
             circular: true,
@@ -101,101 +101,41 @@ var app = {
                  dataType: "xml",
                  async: false,
                  contentType: "text/xml; charset=\"utf-8\""
-//                 complete: function(xml) {
-//                    var result = xmlToJSON.parseString(xml.responseText);
-//                    return result.root["0"].schedule["0"].request["0"].trip;
-//
-//
-//
-//                    timesArray.push.apply(timesArray, result.root["0"].schedule["0"].request["0"].trip);
-//                    if( app.checklastTrain(result.root["0"].schedule["0"].request["0"].trip[3]._attr.origTimeMin._value)){
-//                        app.displayTimes(timesArray);
-//                    } else {
-//                        var newTime = result.root["0"].schedule["0"].request["0"].trip[3]._attr.origTimeMin._value;
-//                        newTime = newTime.split(" ");
-//                        var temp = newTime[0].split(':');
-//                        if(parseInt(temp[1]) == 59){
-//                            temp[0] = parseInt(temp[0]) + 1;
-//                        } else {
-//                            temp[1] = parseInt(temp[1]) + 1;
-//                            if(temp[1].toString().length == 1){
-//                                temp[1] =  "0" + temp[1].toString()
-//                            }
-//                        }
-//                        newTime = temp.join(':') + newTime[1].toString().toLowerCase();
-//                        setTimeout(function(){
-//                            app.fetchTrainTimes(times, newTime);
-//                        }, 200)
-//                    }
-//
-//                 }
             });
 
     },
-    displayTimes: function(trips){
-        var i = 0;
-        $('.spinner').fadeOut();
-        $.each(trips, function(key, val){
-            var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time" data-index='+i+'><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">'+val._attr.tripTime._value+'m';
-            i++;
-
-            if(val.leg.length > 1){
-                html += '<span class="exclamation">!</span>';
-            }
-            html += '</div></div></a></li>';
-            originArray.push(val._attr.origTimeMin._value);
-            $('.times ul').append(html);
-        });
-        $('.infinite-scroll-preloader').show();
-    },
-    addDisplayTimes: function(trips){
+    displayTimes: function(trips, status){
         var i = 0;
         var noneWereAdded = true;
-//        if($('.times ul li:last-child').find('.item-title').text() == trips[trips.length - 1]._attr.origTimeMin._value + ' - ' + trips[trips.length - 1]._attr.destTimeMin._value){
-//            myApp.detachInfiniteScroll($$('.infinite-scroll'));
-//            return;
-//        }
-        $.each(trips, function(key, val){
-            var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time" data-index='+i+'><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">'+val._attr.tripTime._value+'m';
-            i++;
 
-            if(val.leg.length > 1){
-                html += '<span class="exclamation">!</span>';
-            }
-            html += '</div></div></a></li>';
-            if($.inArray(val._attr.origTimeMin._value, originArray) == -1){
-                originArray.push(val._attr.origTimeMin._value)
-                $('.times ul').append(html)
-                noneWereAdded = false;
-            }
-
-        });
-        arrayToDisplay = [];
-        if(noneWereAdded){
-            $('.infinite-scroll-preloader').hide();
-        }
-
-    },
-    addPreviousDisplayTimes: function(trips){
-        var i = 0;
-        if($('.times ul li:first-child').find('.item-title').text() == trips[0]._attr.origTimeMin._value + ' - ' + trips[0]._attr.destTimeMin._value){
+        if(status == 'prev' && $('.times ul li:first-child').find('.item-title').text() == trips[0]._attr.origTimeMin._value + ' - ' + trips[0]._attr.destTimeMin._value){
             myApp.destroyPullToRefresh($$('.pull-to-refresh-content'));
             return;
+        } else if(status == 'prev'){
+            trips = trips.reverse();
         }
-        $.each(trips.reverse(), function(key, val){
-            var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time" data-index='+i+'><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">'+val._attr.tripTime._value+'m';
+
+        $.each(trips, function(key, val){
+            var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time" data-index='+i+'><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">';
             i++;
 
             if(val.leg.length > 1){
-                html += '<span class="exclamation">!</span>';
+                html += '<i class="fa fa-subway"></i><i class="fa fa-subway"></i>';
             }
-            html += '</div></div></a></li>';
+            html += val._attr.tripTime._value+'m' + '</div></div></a></li>';
             if($.inArray(val._attr.origTimeMin._value, originArray) == -1){
-                originArray.push(val._attr.origTimeMin._value)
-                $('.times ul').prepend(html)
+                originArray.push(val._attr.origTimeMin._value);
+                $('.times ul').append(html);
+                noneWereAdded = false;
             }
         });
+        if(status == 'initial'){
+            $('.infinite-scroll-preloader').show();
+        } else if(status == 'next' && noneWereAdded){
+            $('.infinite-scroll-preloader').hide();
+        }
         arrayToDisplay = [];
+        $('.times').removeClass('loading');
 
     },
     displayTrainData: function(i){
@@ -206,22 +146,31 @@ var app = {
             var index = $(this).attr('data-index');
             console.log(JSON.stringify(timesArray[index]));
         });
+        $('body').on('click', '.reverseTrip', function(){
+            $('.times').addClass('loading');
+            var reverse = currentStations.split(' ');
+            reverse = reverse.reverse();
+            scroller.setArrayVal(reverse, true, true, false);
+        });
         $('#bartInput').on('change', function(){
+            $('.times').addClass('loading');
             var s = currentStations = $(this).val();
             localStorage.setItem('stations', s);
             timesArray = [];
             originArray = [];
             $('.times ul').empty();
-            $('.spinner').fadeIn();
             myApp.attachInfiniteScroll($$('.infinite-scroll'));
 
-            $.when( app.fetchTrainTimes(s, 'now', 4, 4) ).then(function( data, a, xml ) {
+            $.when( app.fetchTrainTimes(s, '1:24 am', 4, 4) ).then(function( data, a, xml ) {
                 var result = xmlToJSON.parseString(xml.responseText);
                 timesArray.push.apply(timesArray, result.root["0"].schedule["0"].request["0"].trip);
                 $.when( app.fetchTrainTimes(s, app.getNextTrainStartTime(timesArray, 'add'), 0, 4) ).then(function( data, a, xml ) {
                     var result = xmlToJSON.parseString(xml.responseText);
                     timesArray.push.apply(timesArray, result.root["0"].schedule["0"].request["0"].trip);
-                    app.displayTimes(timesArray);
+                    app.displayTimes(timesArray, 'initial');
+                    if($('.infinite-scroll-preloader').offset().top < $('.page-content').height()){
+                        $('.pull-to-refresh-content').trigger('ptr:refresh');
+                    }
                 });
             });
         });
@@ -246,7 +195,7 @@ var app = {
                         var clone2 = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip));
                         arrayToDisplay.push.apply(arrayToDisplay, result.root["0"].schedule["0"].request["0"].trip);
                         timesArray.push.apply(timesArray, clone2);
-                        app.addDisplayTimes(arrayToDisplay);
+                        app.displayTimes(arrayToDisplay, 'next');
                     });
                 });
             }, 1000);
@@ -262,7 +211,7 @@ var app = {
                     var clone2 = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip));
                     arrayToDisplay = $.merge(result.root["0"].schedule["0"].request["0"].trip, arrayToDisplay);
                     timesArray = $.merge(clone2, timesArray);
-                    app.addPreviousDisplayTimes(arrayToDisplay);
+                    app.displayTimes(arrayToDisplay, 'prev');
                     myApp.pullToRefreshDone();
 
                 });
@@ -272,7 +221,11 @@ var app = {
 
     },
     getNextTrainStartTime: function(t, state){
-        t = t[t.length - 1]._attr.origTimeMin._value;
+        if(state == 'add'){
+            t = t[t.length - 1]._attr.origTimeMin._value;
+        } else {
+            t = t[0]._attr.origTimeMin._value;
+        }
         console.log(t);
         t = t.split(" ");
         var temp = t[0].split(':');
@@ -298,6 +251,7 @@ var app = {
             h = h - 12;
             end = 'pm';
         }
+        if(m < 10) m = "0" + m;
         console.log(h + ":" + m + " " + end);
 
         return h + ":" + m + " " + end;
