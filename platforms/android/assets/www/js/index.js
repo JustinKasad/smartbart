@@ -46,10 +46,10 @@ var app = {
     init: function(id) {
       var abbrs = [];
 
-      for(var i = 0; i < stations.length; i++){
+      for (var key in stations) {
         abbrs.push({
-                        value: stations[i]["abbr"],
-                        display: stations[i]["name"]
+                        value: key,
+                        display: stations[key]["name"]
                     });
       }
 
@@ -105,9 +105,16 @@ var app = {
 
     },
     displayTimes: function(trips, status){
-        var i = 0;
         var noneWereAdded = true;
-
+//        var d = new Date();
+//        var h = d.getHours();
+//        var m = d.getMinutes();
+//        var end = 'am';
+//        if(h > 12){
+//            h = h - 12;
+//            end = 'pm';
+//        }
+//
         if(status == 'prev' && $('.times ul li:first-child').find('.item-title').text() == trips[0]._attr.origTimeMin._value + ' - ' + trips[0]._attr.destTimeMin._value){
             myApp.destroyPullToRefresh($$('.pull-to-refresh-content'));
             return;
@@ -115,17 +122,25 @@ var app = {
             trips = trips.reverse();
         }
 
-        $.each(trips, function(key, val){
-            var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time" data-index='+i+'><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">';
-            i++;
+//        var originTime = val._attr.origTimeMin._value;
 
+        $.each(trips, function(key, val){
+            if(status == 'initial' && key == 4){
+                var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time selected"><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">';
+            } else {
+                var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time"><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">';
+            }
             if(val.leg.length > 1){
                 html += '<i class="fa fa-subway"></i><i class="fa fa-subway"></i>';
             }
             html += val._attr.tripTime._value+'m' + '</div></div></a></li>';
             if($.inArray(val._attr.origTimeMin._value, originArray) == -1){
                 originArray.push(val._attr.origTimeMin._value);
-                $('.times ul').append(html);
+                if(status == 'prev'){
+                    $('.times ul').prepend(html);
+                } else {
+                    $('.times ul').append(html);
+                }
                 noneWereAdded = false;
             }
         });
@@ -138,13 +153,30 @@ var app = {
         $('.times').removeClass('loading');
 
     },
-    displayTrainData: function(i){
+    displayTrainData: function(train){
+        var origin = stations[train._attr.origin._value];
+        var dest = stations[train._attr.destination._value];
+
+        var mapOrigin = origin.name.replace(/ /g, '+') + "+bart";
+        var mapDest = dest.name.replace(/ /g, '+') + "+bart";
+        $('.maps-link a').attr('href', 'https://www.google.com/maps/dir/'+mapOrigin+'/'+mapDest + '/data=!4m2!4m1!3e3');
+        $('.sms-link a').attr('href', 'sms:?body='+encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train._attr.destTimeMin._value.replace(' ', '').toLowerCase()));
+
+        var html = '<p>depart from <span>'+origin.name+'</span></p>';
+        html += '<p class="time-details">'+train.leg[0]._attr.origTimeMin._value+' - ' + train.leg[0]._attr.destTimeMin._value + '</p>'
+        if(train.leg.length > 1){
+            html += '<p>transfer at <span>'+stations[train.leg[0]._attr.destination._value].name+'</span></p>';
+            html += '<p class="time-details">'+train.leg[1]._attr.origTimeMin._value+' - ' + train.leg[1]._attr.destTimeMin._value + '</p>'
+        }
+        html += '<p>arrive at <span>'+dest.name+'</span></p>';
+
+        $('.train-details').html(html);
 
     },
     setEvents: function(){
         $('body').on('click', '.time', function(){
-            var index = $(this).attr('data-index');
-            console.log(JSON.stringify(timesArray[index]));
+            var index = $('.time').index(this)
+            app.displayTrainData(timesArray[index]);
         });
         $('body').on('click', '.reverseTrip', function(){
             $('.times').addClass('loading');
@@ -161,7 +193,7 @@ var app = {
             $('.times ul').empty();
             myApp.attachInfiniteScroll($$('.infinite-scroll'));
 
-            $.when( app.fetchTrainTimes(s, '1:24 am', 4, 4) ).then(function( data, a, xml ) {
+            $.when( app.fetchTrainTimes(s, 'now', 4, 4) ).then(function( data, a, xml ) {
                 var result = xmlToJSON.parseString(xml.responseText);
                 timesArray.push.apply(timesArray, result.root["0"].schedule["0"].request["0"].trip);
                 $.when( app.fetchTrainTimes(s, app.getNextTrainStartTime(timesArray, 'add'), 0, 4) ).then(function( data, a, xml ) {
@@ -171,6 +203,7 @@ var app = {
                     if($('.infinite-scroll-preloader').offset().top < $('.page-content').height()){
                         $('.pull-to-refresh-content').trigger('ptr:refresh');
                     }
+                    app.highlightNextTime()
                 });
             });
         });
@@ -257,13 +290,13 @@ var app = {
         return h + ":" + m + " " + end;
 
     },
-    checklastTrain: function(time){
-        time = time.split(' ');
-        var temp = time[0].split(':');
-        if(time[1].toLowerCase() == 'am' && (parseInt(temp[0]) == 12 || parseInt(temp[0]) == 1)){
-            return true;
-        } else {
-            return false;
-        }
+    highlightNextTime: function(){
+        var d = new Date();
+        var h = d.getHours();
+        var m = d.getMinutes();
+        var t;
+        $('.time').each(function(key, val){
+        	t = $(val).find('.item-title').text().split('-')[0];
+        });
     }
 };
