@@ -1,21 +1,17 @@
 {
-  "name": "phonegap-template-hello-world",
-  "version": "4.0.3",
-  "description": "> A Hello World template built with PhoneGap",
+  "name": "SmartBart",
+  "version": "1.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/phonegap/phonegap-app-hello-world.git"
+    "url": "https://bitbucket.org/justinkasad/bart"
   },
-  "author": "PhoneGap Team",
+  "author": "Justin Kasad",
   "license": "Apache-2.0",
   "keywords": [
     "ecosystem:phonegap",
     "ecosystem:cordova",
     "cordova:template",
     "phonegap:template"
-  ],
-  "bugs": {
-    "url": "https://github.com/phonegap/phonegap-app-hello-world/issues"
-  },
-  "homepage": "https://github.com/phonegap/phonegap-app-hello-world"
+  ]
+
 }

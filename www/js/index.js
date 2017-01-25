@@ -23,6 +23,7 @@ var bottomLoading = false;
 var arrayToDisplay = [];
 var currentStations = [];
 var originArray = [];
+var schedule;
 var app = {
     // Application Constructor
     initialize: function() {
@@ -40,6 +41,21 @@ var app = {
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
+        var d = new Date();
+        var month = d.getMonth() + 1;
+        var day = d.getDate();
+        var year = d.getFullYear();
+        schedule = ((d.getMonth()+1) < 10 ? ("0" + (d.getMonth()+1)) : (d.getMonth()+1)) + "/" + (day < 10 ? ("0" + day) : day) + "/" + year;
+
+        var day = d.getDay();
+        if(d == 0){
+            app.setSchedule('sunday');
+        } else if(d == 6){
+            app.setSchedule('saturday');
+        } else {
+            app.setSchedule('weekday');
+        }
+
         app.init('deviceready');
     },
     // Update DOM on a Received Event
@@ -48,9 +64,9 @@ var app = {
 
       for (var key in stations) {
         abbrs.push({
-                        value: key,
-                        display: stations[key]["name"]
-                    });
+            value: key,
+            display: stations[key]["name"]
+        });
       }
 
         scroller = mobiscroll.scroller('#bartInput', {
@@ -61,7 +77,7 @@ var app = {
             cssClass: 'bartSpinner',
             onShow: function(){
                         var height = $(window).height() - $('.bartSpinner').height();
-                        $('.toolbar-through .page-content').css('height', height);
+                        $('.toolbar-through .page-content, .panel-right').css('height', height);
 
                     },
             wheels: [
@@ -88,13 +104,57 @@ var app = {
 
 
     },
+    setSchedule: function(scheduleType){
+        var d = new Date();
+        var day = d.getDay();
 
+        switch(scheduleType){
+            case 'weekday':
+                if(day == 0 || day == 6){
+                    var distance = (4 + 7 - day) % 7;
+                    d.setDate(d.getDate() + distance);
+                }
+                break;
+            case 'saturday':
+                if(day > 0 && day < 6){
+                    var distance = (6 + 7 - day) % 7;
+                    d.setDate(d.getDate() + distance);
+                }
+                break;
+            case 'sunday':
+                if(day > 0 && day < 6){
+                    var distance = (0 + 7 - day) % 7;
+                    d.setDate(d.getDate() + distance);
+                }
+                break;
+
+        }
+
+        var month = d.getMonth() + 1;
+        var day = d.getDate();
+        var year = d.getFullYear();
+
+        schedule = ((d.getMonth()+1) < 10 ? ("0" + (d.getMonth()+1)) : (d.getMonth()+1)) + "/" + (day < 10 ? ("0" + day) : day) + "/" + year;
+
+        console.log(schedule);
+
+        app.setScheduleDropdown(scheduleType);
+        myApp.closePanel();
+        $('#bartInput').trigger('change');        
+
+    },
+    setScheduleDropdown: function(scheduleType){
+        $('.schedule-selected').addClass('schedule-set').removeClass('schedule-selected');
+        $('.schedule-set[data="'+scheduleType+'"]').removeClass('schedule-set').addClass('schedule-selected');
+        $(".scheduleList i").addClass('fa-caret-down').removeClass('fa-caret-up');
+        $('.schedule-set').hide();
+    },
     fetchTrainTimes: function(times, start, before, after){
         var s = times.split(' ');
         if(s[0] == s[1]){
             return;
         }
-        var url = "http://api.bart.gov/api/sched.aspx?cmd=depart&b="+before+"&a="+after+"&orig="+s[0]+"&dest="+s[1]+"&time="+start+"&key=MW9S-E7SL-26DU-VV8V"
+        var url = "http://api.bart.gov/api/sched.aspx?cmd=depart&b="+before+"&a="+after+"&orig="+s[0]+"&dest="+s[1]+"&time="+start+"&date="+schedule+"&key=MW9S-E7SL-26DU-VV8V"
         return $.ajax({
                  type: "GET",
                  url: url,
@@ -106,23 +166,12 @@ var app = {
     },
     displayTimes: function(trips, status){
         var noneWereAdded = true;
-//        var d = new Date();
-//        var h = d.getHours();
-//        var m = d.getMinutes();
-//        var end = 'am';
-//        if(h > 12){
-//            h = h - 12;
-//            end = 'pm';
-//        }
-//
         if(status == 'prev' && $('.times ul li:first-child').find('.item-title').text() == trips[0]._attr.origTimeMin._value + ' - ' + trips[0]._attr.destTimeMin._value){
             myApp.destroyPullToRefresh($$('.pull-to-refresh-content'));
             return;
         } else if(status == 'prev'){
             trips = trips.reverse();
         }
-
-//        var originTime = val._attr.origTimeMin._value;
 
         $.each(trips, function(key, val){
             if(status == 'initial' && key == 4){
@@ -184,6 +233,20 @@ var app = {
             reverse = reverse.reverse();
             scroller.setArrayVal(reverse, true, true, false);
         });
+        $('body').on('click', '.schedule-selected', function(){
+            if($(".scheduleList i").hasClass('fa-caret-down')){
+                $(".scheduleList i").removeClass('fa-caret-down').addClass('fa-caret-up');
+                $('.schedule-set').show();
+            } else {
+                $(".scheduleList i").addClass('fa-caret-down').removeClass('fa-caret-up');
+                $('.schedule-set').hide();
+            }
+
+        });
+        $('body').on('click', '.schedule-set', function(){
+            var dateSelected = $(this).attr('data');
+            app.setSchedule(dateSelected);
+        });
         $('#bartInput').on('change', function(){
             $('.times').addClass('loading');
             var s = currentStations = $(this).val();
@@ -203,7 +266,6 @@ var app = {
                     if($('.infinite-scroll-preloader').offset().top < $('.page-content').height()){
                         $('.pull-to-refresh-content').trigger('ptr:refresh');
                     }
-                    app.highlightNextTime()
                 });
             });
         });
@@ -289,14 +351,5 @@ var app = {
 
         return h + ":" + m + " " + end;
 
-    },
-    highlightNextTime: function(){
-        var d = new Date();
-        var h = d.getHours();
-        var m = d.getMinutes();
-        var t;
-        $('.time').each(function(key, val){
-        	t = $(val).find('.item-title').text().split('-')[0];
-        });
     }
 };

@@ -218,8 +218,9 @@ i.fa.fa-subway:last-child {
     margin-right: 10px;
 }
 
-.panel-right ul li {
+.panel-right ul li, .panel-left ul li {
     background: black;
+    color: white;
 }
 
 .panel-right ul li .item-after{
@@ -236,10 +237,45 @@ i.fa.fa-subway:last-child {
 .train-details .time-details{
     margin-left: 20px;
 }
+.train-information{
+    position: absolute;
+    margin: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
 .sms-link, .maps-link {
     color: white;
 }
 .train-info {
     margin-left: 15px;
     color: white;
+}
+
+.schedule-selected i {
+    margin-left: 15px;
+    font-size: 20px;
+}
+.schedule-set {
+    display: none;
+    padding-left: 15px;
+}
+.schedule-set:first-child {
+    margin-top: 40px;
+    display: list-item !important;
+}
+.schedule-set i{
+    display: none;
+}
+.schedule-selected {
+    display: block;
+    padding-left: 0;
+    margin-top: 0;
+    position: absolute !important;
+    top:0;
+    left: 0;
+    right: 0;
+}
+.schedule-selected i {
+    display: inline;
 }
