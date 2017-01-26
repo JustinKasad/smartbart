@@ -152,7 +152,10 @@ var app = {
     fetchTrainTimes: function(times, start, before, after){
         var s = times.split(' ');
         if(s[0] == s[1]){
+            $('.noTrains').show();
             return;
+        } else {
+            $('.noTrains').hide();
         }
         var url = "http://api.bart.gov/api/sched.aspx?cmd=depart&b="+before+"&a="+after+"&orig="+s[0]+"&dest="+s[1]+"&time="+start+"&date="+schedule+"&key=MW9S-E7SL-26DU-VV8V"
         return $.ajax({
@@ -162,6 +165,23 @@ var app = {
                  async: false,
                  contentType: "text/xml; charset=\"utf-8\""
             });
+
+    },
+    getElevatorStatus: function(){
+         var url = "http://api.bart.gov/api/bsa.aspx?cmd=elev&key=MW9S-E7SL-26DU-VV8V"
+         $.ajax({
+              type: "GET",
+              url: url,
+              dataType: "xml",
+              async: false,
+              contentType: "text/xml; charset=\"utf-8\"",
+              complete: function(xml) {
+                 var result = xmlToJSON.parseString(xml.responseText);
+                 var data = result.root["0"].bsa["0"].description["0"]._text;
+                 myApp.closePanel();
+                 myApp.alert(data, 'Elevator Status');
+              }
+         });
 
     },
     displayTimes: function(trips, status){
@@ -180,7 +200,7 @@ var app = {
                 var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time"><div class="item-inner"><div class="item-title">' + val._attr.origTimeMin._value + ' - ' + val._attr.destTimeMin._value + '</div><div class="item-after">';
             }
             if(val.leg.length > 1){
-                html += '<i class="fa fa-subway"></i><i class="fa fa-subway"></i>';
+                html += '<span class="trainTransfer">2</span><i class="fa fa-subway"></i>';
             }
             html += val._attr.tripTime._value+'m' + '</div></div></a></li>';
             if($.inArray(val._attr.origTimeMin._value, originArray) == -1){
@@ -247,6 +267,9 @@ var app = {
             var dateSelected = $(this).attr('data');
             app.setSchedule(dateSelected);
         });
+        $('body').on('click', '.elevator-link', function(){
+            app.getElevatorStatus();
+        });
         $('#bartInput').on('change', function(){
             $('.times').addClass('loading');
             var s = currentStations = $(this).val();
@@ -257,6 +280,9 @@ var app = {
             myApp.attachInfiniteScroll($$('.infinite-scroll'));
 
             $.when( app.fetchTrainTimes(s, 'now', 4, 4) ).then(function( data, a, xml ) {
+                if(!xml || !xml.responseText){
+
+                }
                 var result = xmlToJSON.parseString(xml.responseText);
                 timesArray.push.apply(timesArray, result.root["0"].schedule["0"].request["0"].trip);
                 $.when( app.fetchTrainTimes(s, app.getNextTrainStartTime(timesArray, 'add'), 0, 4) ).then(function( data, a, xml ) {

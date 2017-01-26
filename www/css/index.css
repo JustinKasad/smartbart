@@ -217,6 +217,9 @@ i.fa.fa-subway {
 i.fa.fa-subway:last-child {
     margin-right: 10px;
 }
+.trainTransfer {
+    color: black;
+}
 
 .panel-right ul li, .panel-left ul li {
     background: black;
@@ -285,3 +288,14 @@ i.fa.fa-subway:last-child {
 .schedule-selected i {
     display: inline;
 }
+.left-menu-items {
+    margin-top: -35px;
+}
+.noTrains {
+    display: none;
+    text-align: center;
+}
+
+
+
+
