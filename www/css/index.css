@@ -252,7 +252,9 @@ i.fa.fa-subway:last-child {
     color: white;
     font-weight: normal;
 }
-
+.mbsc-sc-lbl {
+    color: #31b6e7;
+}
 .schedule-selected i {
     margin-left: 15px;
     font-size: 20px;

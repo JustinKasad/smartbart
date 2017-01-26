@@ -296,21 +296,23 @@ var app = {
             }, 1000);
         });
         $('.pull-to-refresh-content').on('ptr:refresh', function () {
-            $.when( app.fetchTrainTimes(currentStations, app.getNextTrainStartTime(timesArray, 'previous'), 4, 0) ).then(function( data, a, xml ) {
-                var result = xmlToJSON.parseString(xml.responseText);
-                var clone = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip))
-                arrayToDisplay = $.merge(result.root["0"].schedule["0"].request["0"].trip, arrayToDisplay);
-                timesArray = $.merge(clone, timesArray);
+            setTimeout(function () {
                 $.when( app.fetchTrainTimes(currentStations, app.getNextTrainStartTime(timesArray, 'previous'), 4, 0) ).then(function( data, a, xml ) {
                     var result = xmlToJSON.parseString(xml.responseText);
-                    var clone2 = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip));
+                    var clone = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip))
                     arrayToDisplay = $.merge(result.root["0"].schedule["0"].request["0"].trip, arrayToDisplay);
-                    timesArray = $.merge(clone2, timesArray);
-                    app.displayTimes(arrayToDisplay, 'prev');
-                    myApp.pullToRefreshDone();
+                    timesArray = $.merge(clone, timesArray);
+                    $.when( app.fetchTrainTimes(currentStations, app.getNextTrainStartTime(timesArray, 'previous'), 4, 0) ).then(function( data, a, xml ) {
+                        var result = xmlToJSON.parseString(xml.responseText);
+                        var clone2 = JSON.parse(JSON.stringify(result.root["0"].schedule["0"].request["0"].trip));
+                        arrayToDisplay = $.merge(result.root["0"].schedule["0"].request["0"].trip, arrayToDisplay);
+                        timesArray = $.merge(clone2, timesArray);
+                        app.displayTimes(arrayToDisplay, 'prev');
+                        myApp.pullToRefreshDone();
 
+                    });
                 });
-            });
+            }, 500);
         });
 
 
