@@ -16,9 +16,6 @@
         "cordova-plugin-console": {
             "PACKAGE_NAME": "com.justinkasad.bart"
         },
-        "cordova-plugin-contacts": {
-            "PACKAGE_NAME": "com.justinkasad.bart"
-        },
         "cordova-plugin-device": {
             "PACKAGE_NAME": "com.justinkasad.bart"
         },
@@ -41,9 +38,6 @@
             "PACKAGE_NAME": "com.justinkasad.bart"
         },
         "cordova-plugin-inappbrowser": {
-            "PACKAGE_NAME": "com.justinkasad.bart"
-        },
-        "cordova-plugin-media": {
             "PACKAGE_NAME": "com.justinkasad.bart"
         },
         "cordova-plugin-media-capture": {
