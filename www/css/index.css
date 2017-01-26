@@ -250,11 +250,15 @@ i.fa.fa-subway:last-child {
 .train-info {
     margin-left: 15px;
     color: white;
+    font-weight: normal;
 }
 
 .schedule-selected i {
     margin-left: 15px;
     font-size: 20px;
+}
+.scheduleList {
+    margin-top: -35px;
 }
 .schedule-set {
     display: none;
