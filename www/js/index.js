@@ -85,6 +85,7 @@ var app = {
             cssClass: 'bartSpinner',
             onShow: function(){
                         $('.toolbar-through .page-content').css('padding-bottom', $('.bartSpinner').height());
+                        $('.train-information').css('bottom', $('.bartSpinner').height() + "px");
                     },
             wheels: [
                 [{
@@ -271,7 +272,6 @@ var app = {
         } else {
             $('.sms-link a').attr('href', 'sms:?body='+encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase()));
         }
-        $('.sms-link a').attr('href', 'sms:?body='+encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase()));
 
         var html = '<p>depart from <span>'+origin.name+'</span></p>';
         html += '<p class="time-details">'+train.departTime+' - ';
