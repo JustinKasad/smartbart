@@ -57,6 +57,9 @@
         },
         "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "com.justinkasad.bart"
+        },
+        "cordova-plugin-x-socialsharing": {
+            "PACKAGE_NAME": "com.justinkasad.bart"
         }
     },
     "dependent_plugins": {
