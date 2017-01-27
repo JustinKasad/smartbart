@@ -262,6 +262,11 @@ var app = {
         var mapOrigin = origin.name.replace(/ /g, '+') + "+bart";
         var mapDest = dest.name.replace(/ /g, '+') + "+bart";
         $('.maps-link a').attr('href', 'https://www.google.com/maps/dir/'+mapOrigin+'/'+mapDest + '/data=!4m2!4m1!3e3');
+        if(device.platform == 'iOS'){
+            $('.sms-link a').attr('href', 'sms:;body='+encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase()));
+        } else {
+            $('.sms-link a').attr('href', 'sms:?body='+encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase()));
+        }
         $('.sms-link a').attr('href', 'sms:?body='+encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase()));
 
         var html = '<p>depart from <span>'+origin.name+'</span></p>';
