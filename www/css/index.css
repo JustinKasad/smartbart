@@ -304,6 +304,6 @@ i.fa.fa-subway:last-child {
 .modal {
     top: 38%;
 }
-
-
-
+.shareSpinner {
+    display: none;
+}

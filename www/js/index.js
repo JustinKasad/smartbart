@@ -288,6 +288,11 @@ var app = {
     socialShare: function(){
         var message = decodeURIComponent($('.sms-link').attr('share-data'));
 
+        $('.shareSpinner, .shareIcon').toggle();
+        setTimeout(function(){
+            $('.shareSpinner, .shareIcon').toggle();
+        }, 3000);
+
         var options = {
           message: message, // not supported on some apps (Facebook, Instagram)
         }
