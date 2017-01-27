@@ -243,7 +243,7 @@ var app = {
                 var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time"><div class="item-inner"><div class="item-title">' + val.departTime + ' - ' + val.arriveTime + '</div><div class="item-after">';
             }
             if(val.transfer){
-                html += '<span class="trainTransfer">2</span><i class="fa fa-subway"></i>';
+                html += '<span class="trainTransfer">Transfer</span>';
             }
             html += '</div></div></a></li>';
             $('.times ul').append(html);
@@ -312,6 +312,7 @@ var app = {
         });
         $('#bartInput').on('change', function(){
             myApp.showIndicator();
+            myApp.closePanel();
             var s = currentStations = $(this).val();
             localStorage.setItem('stations', s);
             timesArray = [];
