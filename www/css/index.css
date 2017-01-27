@@ -116,7 +116,11 @@ h1 {
     .mbsc-fr-inline .mbsc-sc-itm {
         font-size: 12px;
     }
+    .costSpacer {
+        display: block;
+    }
 }
+
 .list-block .item-after {
     text-transform:lowercase;
 }
@@ -219,6 +223,7 @@ i.fa.fa-subway:last-child {
 }
 .trainTransfer {
     color: black;
+    font-size: 20px;
 }
 
 .panel-right ul li, .panel-left ul li {
@@ -295,7 +300,13 @@ i.fa.fa-subway:last-child {
     display: none;
     text-align: center;
 }
-
+.preloader-indicator-modal {
+    top: 38%;
+    background: transparent;
+}
+.modal {
+    top: 38%;
+}
 
 
 
