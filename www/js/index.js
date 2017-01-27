@@ -42,6 +42,7 @@ var app = {
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
+        StatusBar.styleDefault()
         var d = new Date();
         var month = d.getMonth() + 1;
         var day = d.getDate();
@@ -49,6 +50,9 @@ var app = {
         schedule = year + "-" + ((d.getMonth()+1) < 10 ? ("0" + (d.getMonth()+1)) : (d.getMonth()+1)) + "-" + (day < 10 ? ("0" + day) : day);
 
         currentTimeInMinutes = (d.getHours() * 60) + d.getMinutes();
+        if(d.getHours() == 0){
+            currentTimeInMinutes += (24*60);
+        }
 
         var day = d.getDay();
         if(d == 0){
@@ -80,9 +84,7 @@ var app = {
             circular: true,
             cssClass: 'bartSpinner',
             onShow: function(){
-                        var height = $(window).height() - $('.bartSpinner').height();
-                        $('.toolbar-through .page-content, .panel-right').css('height', height);
-
+                        $('.toolbar-through .page-content').css('padding-bottom', $('.bartSpinner').height());
                     },
             wheels: [
                 [{
@@ -248,7 +250,9 @@ var app = {
             html += '</div></div></a></li>';
             $('.times ul').append(html);
         });
-        $('.times-page-content').scrollTop($(".time.selected").offset().top - ($('.times-page-content').height() / 2))
+        if($(".time.selected").length){
+            $('.times-page-content').scrollTop($(".time.selected").offset().top - ($('.times-page-content').height() / 2))
+        }
 //        $('.times-page-content').animate({
 //            scrollTop: $(".time.selected").offset().top - ($('.times-page-content').height() / 2)
 //        }, 500);

@@ -173,9 +173,6 @@ h1 {
     top: 50%;
     margin-left: -21px;
 }
-.page-content {
-    padding-bottom: 0 !important;
-}
 .page-content.loading {
     opacity: .3;
 }
