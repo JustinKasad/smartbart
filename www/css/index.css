@@ -307,3 +307,6 @@ i.fa.fa-subway:last-child {
 .shareSpinner {
     display: none;
 }
+.titleText {
+    text-transform: none;
+}
