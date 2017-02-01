@@ -128,6 +128,18 @@
             </li>
         </ul>
     </div>
+
+    <div class="list-block train-information">
+        <ul>
+            <li class="shareWithFriends">
+                <a class="item-content item-link">
+                    <div class="item-title">Share with friends</div>
+                    <div class="item-after"><i class="shareIcon fa fa-share-alt"></i><i class="shareSpinner fa fa-spinner fa-spin"></i></div>
+                </a>
+            </li>
+        </ul>
+    </div>
+
 </div>
 <!-- Right panel with cover effect-->
 <div class="panel panel-right panel-cover">
@@ -193,7 +205,8 @@
             <!-- Index Page-->
             <div data-page="index" class="page">
                 <!-- Scrollable page content-->
-                <div class="times-page-content page-content">
+                <div class="times-page-content page-content infinite-scroll">
+                    <div class="today dateText stickied"></div>
                     <h3 class="noTrains">Stations cannot be the same.<br>You're going in circles!</h3>
                     <div class="times list-block">
                         <ul>
@@ -215,36 +228,9 @@
                             <li class="item-content"><div class="item-inner"><div class="item-title"></div><div class="item-after"></div></div></li>
                         </ul>
                     </div>
-                    <!--<div class="content-block-title">What about simple navigation?</div>-->
-                    <!--<div class="list-block">-->
-                        <!--<ul>-->
-                            <!--<li><a href="#about" class="item-link">-->
-                                <!--<div class="item-content">-->
-                                    <!--<div class="item-inner">-->
-                                        <!--<div class="item-title">About</div>-->
-                                    <!--</div>-->
-                                <!--</div></a></li>-->
-                            <!--<li><a href="#services" class="item-link">-->
-                                <!--<div class="item-content">-->
-                                    <!--<div class="item-inner">-->
-                                        <!--<div class="item-title">Services</div>-->
-                                    <!--</div>-->
-                                <!--</div></a></li>-->
-                            <!--<li><a href="#form" class="item-link">-->
-                                <!--<div class="item-content">-->
-                                    <!--<div class="item-inner">-->
-                                        <!--<div class="item-title">Form</div>-->
-                                    <!--</div>-->
-                                <!--</div></a></li>-->
-                        <!--</ul>-->
-                    <!--</div>-->
-                    <!--<div class="content-block-title">Side panels</div>-->
-                    <!--<div class="content-block">-->
-                        <!--<div class="row">-->
-                            <!--<div class="col-50"><a href="#" data-panel="left" class="button open-panel">Left Panel</a></div>-->
-                            <!--<div class="col-50"><a href="#" data-panel="right" class="button open-panel">Right Panel</a></div>-->
-                        <!--</div>-->
-                    <!--</div>-->
+                    <div class="infinite-scroll-preloader">
+                        <div class="preloader"></div>
+                    </div>
                 </div>
             </div>
             <!-- About Page-->

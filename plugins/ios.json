@@ -10,9 +10,6 @@
         "cordova-plugin-battery-status": {
             "PACKAGE_NAME": "com.justinkasad.bart"
         },
-        "cordova-plugin-camera": {
-            "PACKAGE_NAME": "com.justinkasad.bart"
-        },
         "cordova-plugin-console": {
             "PACKAGE_NAME": "com.justinkasad.bart"
         },
@@ -40,9 +37,6 @@
         "cordova-plugin-inappbrowser": {
             "PACKAGE_NAME": "com.justinkasad.bart"
         },
-        "cordova-plugin-media-capture": {
-            "PACKAGE_NAME": "com.justinkasad.bart"
-        },
         "cordova-plugin-network-information": {
             "PACKAGE_NAME": "com.justinkasad.bart"
         },
@@ -59,6 +53,12 @@
             "PACKAGE_NAME": "com.justinkasad.bart"
         },
         "cordova-plugin-x-socialsharing": {
+            "PACKAGE_NAME": "com.justinkasad.bart"
+        },
+        "cordova-plugin-media-capture": {
+            "CAMERA_USAGE_DESCRIPTION": " ",
+            "MICROPHONE_USAGE_DESCRIPTION": " ",
+            "PHOTOLIBRARY_USAGE_DESCRIPTION": " ",
             "PACKAGE_NAME": "com.justinkasad.bart"
         }
     },

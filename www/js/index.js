@@ -22,9 +22,10 @@ var count = 0;
 var bottomLoading = false;
 var arrayToDisplay = [];
 var currentStations = [];
-var originArray = [];
 var schedule;
 var currentTimeInMinutes;
+var timeout;
+var displayDate;
 var app = {
     // Application Constructor
     initialize: function() {
@@ -43,11 +44,13 @@ var app = {
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
         StatusBar.styleDefault()
-        var d = new Date();
+        var d = displayDate = new Date();
         var month = d.getMonth() + 1;
         var day = d.getDate();
         var year = d.getFullYear();
         schedule = year + "-" + ((d.getMonth()+1) < 10 ? ("0" + (d.getMonth()+1)) : (d.getMonth()+1)) + "-" + (day < 10 ? ("0" + day) : day);
+
+        app.setDateString(d, false);
 
         currentTimeInMinutes = (d.getHours() * 60) + d.getMinutes();
         if(d.getHours() == 0){
@@ -111,6 +114,18 @@ var app = {
 
 
     },
+    setDateString(d, append){
+        var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        var dateString = days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate() + " " + d.getFullYear();
+
+        if(append){
+            $('.times ul').append('<div class="dateText">'+ dateString +'</div>');
+        } else {
+            $('.today.dateText').text(dateString);
+        }
+
+    },
     setSchedule: function(scheduleType){
         var d = new Date();
         var day = d.getDay();
@@ -154,7 +169,7 @@ var app = {
         $(".scheduleList i").addClass('fa-caret-down').removeClass('fa-caret-up');
         $('.schedule-set').hide();
     },
-    getFullTrainTimes: function(s){
+    getFullTrainTimes: function(s, fetchDate, first){
         s = s.split(' ');
         if(s[0] == s[1]){
             $('.noTrains').show();
@@ -162,11 +177,16 @@ var app = {
         } else {
             $('.noTrains').hide();
         }
-         var url = "http://www.bart.gov/schedules/extended?orig="+s[0]+"&dest="+s[1]+"&type=departure&date=" + schedule;
+
+         var url = "http://www.bart.gov/schedules/extended?orig="+s[0]+"&dest="+s[1]+"&type=departure&date=" + fetchDate;
          $.get( url, function( data ) {
             var tr = $(data).find('#exsched tr');
             var cost = $(data).find('.smallblack')[0].textContent;
             tr.splice(0, 1);
+            if(first){
+                timesArray.length = 0;
+            }
+            arrayToDisplay.length = 0;
             tr.each(function(key, val){
                 var $_children = $(val).children();
                 var obj = {
@@ -197,10 +217,10 @@ var app = {
                     obj.timeInMinutes += (24*60);
                 }
                 timesArray.push(obj);
+                arrayToDisplay.push(obj);
             })
-            app.displayTimes(timesArray);
+            app.displayTimes(arrayToDisplay, first);
          });
-
     },
     getElevatorStatus: function(){
          var url = "http://api.bart.gov/api/bsa.aspx?cmd=elev&key=MW9S-E7SL-26DU-VV8V"
@@ -236,10 +256,10 @@ var app = {
          });
 
     },
-    displayTimes: function(trips){
-        var hasSelected = false
+    displayTimes: function(trips, first){
+        var hasSelected = false;
         $.each(trips, function(key, val){
-            if(!hasSelected && typeof trips[(key + 1)] != "undefined" && trips[(key)].timeInMinutes > currentTimeInMinutes){
+            if(first && !hasSelected && typeof trips[(key + 1)] != "undefined" && trips[(key)].timeInMinutes > currentTimeInMinutes){
                 var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time selected"><div class="item-inner"><div class="item-title">' + val.departTime + ' - ' + val.arriveTime + '</div><div class="item-after">';
                 hasSelected = true;
             } else {
@@ -251,14 +271,13 @@ var app = {
             html += '</div></div></a></li>';
             $('.times ul').append(html);
         });
-        if($(".time.selected").length){
+        if(first && $(".time.selected").length){
             $('.times-page-content').scrollTop($(".time.selected").offset().top - ($('.times-page-content').height() / 2))
         }
 //        $('.times-page-content').animate({
 //            scrollTop: $(".time.selected").offset().top - ($('.times-page-content').height() / 2)
 //        }, 500);
         myApp.hideIndicator();
-
     },
     displayTrainData: function(train){
         var origin = stations[train.depart];
@@ -308,6 +327,30 @@ var app = {
 
         window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
     },
+    shareWithFriends: function(){
+        $('.shareSpinner, .shareIcon').toggle();
+        setTimeout(function(){
+            $('.shareSpinner, .shareIcon').toggle();
+        }, 3000);
+
+        var options = {
+          message: 'Try SmartBart, The smarter way to find the BART train times.', // not supported on some apps (Facebook, Instagram)
+          subject: 'SmartBart SF', // fi. for email
+          url: 'http://www.smartbartsf.com',
+        }
+
+
+        var onSuccess = function(result) {
+          console.log("Share completed? " + result.completed); // On Android apps mostly return false even while it's true
+          console.log("Shared to app: " + result.app); // On Android result.app is currently empty. On iOS it's empty when sharing is cancelled (result.completed=false)
+        }
+
+        var onError = function(msg) {
+          console.log("Sharing failed with message: " + msg);
+        }
+
+        window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
+    },
     setEvents: function(){
         $('body').on('click', '.time', function(){
             var index = $('.time').index(this)
@@ -342,22 +385,41 @@ var app = {
         $('body').on('click', '.sms-link', function(){
             app.socialShare();
         });
+        $('body').on('click', '.shareWithFriends', function(){
+            app.shareWithFriends();
+        });
+        $('.infinite-scroll').on('infinite', function () {
+            if (bottomLoading) return;
+
+            // Set loading flag
+            bottomLoading = true;
+
+            // Emulate 1s loading
+            setTimeout(function () {
+              // Reset loading flag
+                bottomLoading = false;
+                displayDate.setDate(displayDate.getDate() + 1);
+                app.setDateString(displayDate, true);
+                var day = displayDate.getDate();
+                var year = displayDate.getFullYear();
+                var tempSchedule = year + "-" + ((displayDate.getMonth()+1) < 10 ? ("0" + (displayDate.getMonth()+1)) : (displayDate.getMonth()+1)) + "-" + (day < 10 ? ("0" + day) : day);
+                app.getFullTrainTimes(currentStations, tempSchedule, false);
+            }, 1000);
+        });
+
         $('#bartInput').on('change', function(){
-            var timeout;
-            if(timeout){
-                clearTimeout(timeout);
-            }
-            timeout = setTimeout(function(){
+//            if(timeout){
+//                clearTimeout(timeout);
+//            }
+//            timeout = setTimeout(function(){
                 myApp.showIndicator();
                 myApp.closePanel();
                 var s = currentStations = $('#bartInput').val();
                 localStorage.setItem('stations', s);
-                timesArray = [];
-                originArray = [];
+                timesArray.length = 0;
                 $('.times ul').empty();
-                myApp.attachInfiniteScroll($$('.infinite-scroll'));
-                app.getFullTrainTimes(s);
-            }, 500)
+                app.getFullTrainTimes(s, schedule, true);
+//            }, 500)
         });
 
     }
