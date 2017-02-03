@@ -274,6 +274,9 @@ var app = {
         if(first && $(".time.selected").length){
             $('.times-page-content').scrollTop($(".time.selected").offset().top - ($('.times-page-content').height() / 2))
         }
+        if(!first){
+            bottomLoading = false;
+        }
 //        $('.times-page-content').animate({
 //            scrollTop: $(".time.selected").offset().top - ($('.times-page-content').height() / 2)
 //        }, 500);
@@ -397,7 +400,6 @@ var app = {
             // Emulate 1s loading
             setTimeout(function () {
               // Reset loading flag
-                bottomLoading = false;
                 displayDate.setDate(displayDate.getDate() + 1);
                 app.setDateString(displayDate, true);
                 var day = displayDate.getDate();
@@ -405,6 +407,20 @@ var app = {
                 var tempSchedule = year + "-" + ((displayDate.getMonth()+1) < 10 ? ("0" + (displayDate.getMonth()+1)) : (displayDate.getMonth()+1)) + "-" + (day < 10 ? ("0" + day) : day);
                 app.getFullTrainTimes(currentStations, tempSchedule, false);
             }, 1000);
+        });
+        var dateHeight = $('.dateText').height();
+
+        $('.times-page-content').on('scroll', function(){
+            var $_dateText = $('.dateText.inline:not(.stickied)');
+
+
+            if($_dateText.length && $_dateText.position().top <= ($('.times-page-content').scrollTop() - dateHeight)){
+                $_dateText.addClass('stickied').next().css('margin-top', dateHeight + 'px');
+            } else if($('.dateText.stickied:not(.today)').length && isScrolledIntoView($('.dateText.stickied:not(.today)').last().next())){
+                $('.dateText.stickied').last().removeClass('stickied').next().css('margin-top', '0');
+            }
+
+
         });
 
         $('#bartInput').on('change', function(){
@@ -424,3 +440,9 @@ var app = {
 
     }
 };
+function isScrolledIntoView(elem)
+{
+    var docViewTop = $(window).scrollTop();
+    var elemTop = $(elem).offset().top;
+    return elemTop >= (docViewTop + 70);
+}
