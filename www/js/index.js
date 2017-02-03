@@ -37,11 +37,17 @@ var app = {
     // 'load', 'deviceready', 'offline', and 'online'.
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
+        document.addEventListener("resume", this.onResume, false);
     },
     // deviceready Event Handler
     //
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
+    onResume: function(){
+        if($('#bartInput').length){
+            $('#bartInput').trigger('change');
+        }
+    },
     onDeviceReady: function() {
         StatusBar.styleDefault()
         var d = displayDate = new Date();
@@ -120,7 +126,7 @@ var app = {
         var dateString = days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate() + " " + d.getFullYear();
 
         if(append){
-            $('.times ul').append('<div class="dateText">'+ dateString +'</div>');
+            $('.times ul').append('<div class="dateText inline">'+ dateString +'</div>');
         } else {
             $('.today.dateText').text(dateString);
         }
@@ -273,6 +279,7 @@ var app = {
         });
         if(first && $(".time.selected").length){
             $('.times-page-content').scrollTop($(".time.selected").offset().top - ($('.times-page-content').height() / 2))
+//            $('.times-page-content').on('scroll', app.isScrolling());
         }
         if(!first){
             bottomLoading = false;
@@ -280,6 +287,7 @@ var app = {
 //        $('.times-page-content').animate({
 //            scrollTop: $(".time.selected").offset().top - ($('.times-page-content').height() / 2)
 //        }, 500);
+        $('.infinite-scroll-preloader').show();
         myApp.hideIndicator();
     },
     displayTrainData: function(train){
@@ -288,7 +296,9 @@ var app = {
 
         var mapOrigin = origin.name.replace(/ /g, '+') + "+bart";
         var mapDest = dest.name.replace(/ /g, '+') + "+bart";
-        $('.maps-link a').attr('href', 'https://www.google.com/maps/dir/'+mapOrigin+'/'+mapDest + '/data=!4m2!4m1!3e3');
+        $('.maps-link a .item-title').text('Directions to ' + origin.name);
+        $('.maps-link a').attr('href', 'https://www.google.com/maps?saddr=My+Location&daddr='+mapOrigin);
+//        $('.maps-link a').attr('href', 'https://www.google.com/maps/dir/'+mapOrigin+'/'+mapDest + '/data=!4m2!4m1!3e3');
         $('.sms-link').attr('share-data', encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase()));
 
 
@@ -354,6 +364,21 @@ var app = {
 
         window.plugins.socialsharing.shareWithOptions(options, onSuccess, onError);
     },
+    isScrolling: function(){
+        var dateHeight = $('.dateText').height();
+        var $_dateText = $('.dateText.inline:not(.stickied)').first();
+
+//        if($_dateText.length && $_dateText.position().top <= $('.times-page-content').scrollTop()){
+//            var top = $_dateText.offset().top - 24;
+//            console.log($_dateText.offset().top);
+//            $('.dateText.stickied').css('top', top + 'px');
+//        }else
+        if($_dateText.length && $_dateText.position().top <= ($('.times-page-content').scrollTop() - dateHeight)){
+            $_dateText.addClass('stickied').next().css('margin-top', dateHeight + 'px');
+        } else if($('.dateText.stickied:not(.today)').length && isScrolledIntoView($('.dateText.stickied:not(.today)').last().next())){
+            $('.dateText.stickied').last().removeClass('stickied').next().css('margin-top', '0');
+        }
+    },
     setEvents: function(){
         $('body').on('click', '.time', function(){
             var index = $('.time').index(this)
@@ -391,8 +416,18 @@ var app = {
         $('body').on('click', '.shareWithFriends', function(){
             app.shareWithFriends();
         });
+        $('body').on('click', '.bartMap-link', function(){
+            var myPhotoBrowserStandalone = myApp.photoBrowser({
+                photos : [
+                    'img/bart_map.png'
+                ],
+                theme: 'dark',
+                toolbar: false
+            });
+            myPhotoBrowserStandalone.open();
+        });
         $('.infinite-scroll').on('infinite', function () {
-            if (bottomLoading) return;
+            if (bottomLoading || !$('.times ul li').length) return;
 
             // Set loading flag
             bottomLoading = true;
@@ -408,20 +443,8 @@ var app = {
                 app.getFullTrainTimes(currentStations, tempSchedule, false);
             }, 1000);
         });
-        var dateHeight = $('.dateText').height();
 
-        $('.times-page-content').on('scroll', function(){
-            var $_dateText = $('.dateText.inline:not(.stickied)');
-
-
-            if($_dateText.length && $_dateText.position().top <= ($('.times-page-content').scrollTop() - dateHeight)){
-                $_dateText.addClass('stickied').next().css('margin-top', dateHeight + 'px');
-            } else if($('.dateText.stickied:not(.today)').length && isScrolledIntoView($('.dateText.stickied:not(.today)').last().next())){
-                $('.dateText.stickied').last().removeClass('stickied').next().css('margin-top', '0');
-            }
-
-
-        });
+        $('.times-page-content').on('scroll', app.isScrolling);
 
         $('#bartInput').on('change', function(){
 //            if(timeout){
@@ -429,6 +452,7 @@ var app = {
 //            }
 //            timeout = setTimeout(function(){
                 myApp.showIndicator();
+                $('.infinite-scroll-preloader').hide();
                 myApp.closePanel();
                 var s = currentStations = $('#bartInput').val();
                 localStorage.setItem('stations', s);
@@ -437,7 +461,6 @@ var app = {
                 app.getFullTrainTimes(s, schedule, true);
 //            }, 500)
         });
-
     }
 };
 function isScrolledIntoView(elem)
