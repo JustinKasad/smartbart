@@ -339,3 +339,18 @@ i.fa.fa-subway:last-child {
 .shareWithFriends .item-after {
     margin-right: 15px;
 }
+.navbar .navbar-inner .fa-exclamation-circle {
+    margin-left: -5px;
+    margin-top: -15px;
+    color: red;
+}
+.delayStatusExclamation {
+    display: none;
+}
+.panel .delayStatusExclamation {
+    color: red;
+    margin-left: 5px;
+}
+.photo-browser-current, .photo-browser-of, .photo-browser-total{
+    display: none;
+}

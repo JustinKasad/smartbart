@@ -245,7 +245,7 @@ var app = {
          });
 
     },
-    getDelayStatus: function(){
+    getDelayStatus: function(hideAlert){
          var url = "http://api.bart.gov/api/bsa.aspx?cmd=bsa&key=MW9S-E7SL-26DU-VV8V&date=today"
          $.ajax({
               type: "GET",
@@ -256,8 +256,13 @@ var app = {
               complete: function(xml) {
                  var result = xmlToJSON.parseString(xml.responseText);
                  var data = result.root["0"].bsa["0"].description["0"]._text;
-                 myApp.closePanel();
-                 myApp.alert(data, 'Delay Status');
+                 $('.delayStatusExclamation').hide();
+                 if(hideAlert && data != "No delays reported."){
+                    $('.delayStatusExclamation').show();
+                 } else if(typeof hideAlert == "undefined"){
+                     myApp.closePanel();
+                     myApp.alert(data, 'Delay Status');
+                 }
               }
          });
 
@@ -459,6 +464,7 @@ var app = {
                 timesArray.length = 0;
                 $('.times ul').empty();
                 app.getFullTrainTimes(s, schedule, true);
+                app.getDelayStatus(true)
 //            }, 500)
         });
     }
