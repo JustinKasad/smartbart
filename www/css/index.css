@@ -153,8 +153,14 @@ h1 {
 }
 
 .bartSpinner {
-    -webkit-transition: bottom .5s; /* Safari */
-    transition: bottom .5s;
+    -webkit-transform: translateY(0%);
+            transform: translateY(0%);
+    transition: transform 400ms;
+    will-change: transform;
+}
+.bartSpinner.hide {
+    -webkit-transform: translateY(100%);
+            transform: translateY(100%);
 }
 
 .header {

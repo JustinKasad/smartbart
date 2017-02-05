@@ -44,6 +44,7 @@ var app = {
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
     onResume: function(){
+        app.setCurrentTimeInMinutes();
         if($('#bartInput').length){
             $('#bartInput').trigger('change');
         }
@@ -56,12 +57,8 @@ var app = {
         var year = d.getFullYear();
         schedule = year + "-" + ((d.getMonth()+1) < 10 ? ("0" + (d.getMonth()+1)) : (d.getMonth()+1)) + "-" + (day < 10 ? ("0" + day) : day);
 
+        app.setCurrentTimeInMinutes();
         app.setDateString(d, false);
-
-        currentTimeInMinutes = (d.getHours() * 60) + d.getMinutes();
-        if(d.getHours() == 0){
-            currentTimeInMinutes += (24*60);
-        }
 
         var day = d.getDay();
         if(d == 0){
@@ -73,6 +70,13 @@ var app = {
         }
 
         app.init('deviceready');
+    },
+    setCurrentTimeInMinutes: function(){
+        var d = new Date();
+        currentTimeInMinutes = (d.getHours() * 60) + d.getMinutes();
+        if(d.getHours() == 0){
+            currentTimeInMinutes += (24*60);
+        }
     },
     // Update DOM on a Received Event
     init: function(id) {
@@ -287,10 +291,10 @@ var app = {
         var hasSelected = false;
         $.each(trips, function(key, val){
             if(first && !hasSelected && typeof trips[(key + 1)] != "undefined" && trips[(key)].timeInMinutes > currentTimeInMinutes){
-                var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time selected"><div class="item-inner"><div class="item-title">' + val.departTime + ' - ' + val.arriveTime + '</div><div class="item-after">';
+                var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time selected"><div class="item-inner"><div class="item-title">' + val.departTime + '&mdash; ' + val.arriveTime + '</div><div class="item-after">';
                 hasSelected = true;
             } else {
-                var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time"><div class="item-inner"><div class="item-title">' + val.departTime + ' - ' + val.arriveTime + '</div><div class="item-after">';
+                var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time"><div class="item-inner"><div class="item-title">' + val.departTime + '&mdash; ' + val.arriveTime + '</div><div class="item-after">';
             }
             if(val.transfer || val.doubleTransfer){
                 html += '<span class="trainTransfer">Transfer</span>';
@@ -315,7 +319,7 @@ var app = {
         var origin = stations[train.depart];
         var dest = stations[train.arrive];
 
-        $('.bartSpinner').css('bottom', '-220px');
+        $('.bartSpinner').addClass('hide');
 
         var mapOrigin = origin.name.replace(/ /g, '+') + "+bart";
         var mapDest = dest.name.replace(/ /g, '+') + "+bart";
@@ -392,7 +396,7 @@ console.log(train);
         }, 3000);
 
         var options = {
-          message: 'Try SmartBart, The smarter way to find the BART train times.', // not supported on some apps (Facebook, Instagram)
+          message: 'Try SmartBart, The smarter way to find BART train times.', // not supported on some apps (Facebook, Instagram)
           subject: 'SmartBart SF', // fi. for email
           url: 'http://www.smartbartsf.com',
         }
@@ -492,7 +496,7 @@ console.log(train);
         $('.times-page-content').on('scroll', app.isScrolling);
 
         $$('.panel-right').on('panel:close', function () {
-            $('.bartSpinner').css('bottom', '0');
+            $('.bartSpinner').removeClass('hide')
         });
 
         $('#bartInput').on('change', function(){
