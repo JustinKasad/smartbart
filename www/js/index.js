@@ -94,7 +94,6 @@ var app = {
             cssClass: 'bartSpinner',
             onShow: function(){
                         $('.toolbar-through .page-content').css('padding-bottom', $('.bartSpinner').height());
-                        $('.train-information').css('bottom', $('.bartSpinner').height() + "px");
                     },
             wheels: [
                 [{
@@ -166,7 +165,7 @@ var app = {
 
         app.setScheduleDropdown(scheduleType);
         myApp.closePanel();
-        $('#bartInput').trigger('change');        
+        $('#bartInput').trigger('change');
 
     },
     setScheduleDropdown: function(scheduleType){
@@ -199,16 +198,33 @@ var app = {
                     depart : $_children[0].textContent.trim(),
                     departTime : $_children[1].textContent
                 }
-                if($_children[8].textContent.trim().length){
+                if($_children[13].textContent.trim().length){
+                    obj.doubleTransfer = true;
                     obj.transfer = true;
                     obj.transferStation = $_children[3].textContent.trim();
                     obj.transferArrive = $_children[4].textContent;
                     obj.transferDepart = $_children[6].textContent;
+                    obj.trainTransferDestination = $($_children[2]).find('img').attr('alt');
+                    obj.transfer2Station = $_children[8].textContent.trim();
+                    obj.transfer2Arrive = $_children[9].textContent;
+                    obj.transfer2Depart = $_children[11].textContent;
+                    obj.trainTransfer2Destination = $($_children[7]).find('img').attr('alt');
+                    obj.trainDestination = $($_children[12]).find('img').attr('alt');
+                    obj.arrive = $_children[13].textContent.trim();
+                    obj.arriveTime = $_children[14].textContent;
+                }else if($_children[8].textContent.trim().length){
+                    obj.transfer = true;
+                    obj.transferStation = $_children[3].textContent.trim();
+                    obj.transferArrive = $_children[4].textContent;
+                    obj.transferDepart = $_children[6].textContent;
+                    obj.trainTransferDestination = $($_children[2]).find('img').attr('alt');
+                    obj.trainDestination = $($_children[7]).find('img').attr('alt');
                     obj.arrive = $_children[8].textContent.trim();
                     obj.arriveTime = $_children[9].textContent;
                 } else {
                     obj.arrive = $_children[3].textContent.trim();
                     obj.arriveTime = $_children[4].textContent;
+                    obj.trainDestination = $($_children[2]).find('img').attr('alt');
                 }
                 obj.cost = cost;
 
@@ -276,7 +292,7 @@ var app = {
             } else {
                 var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time"><div class="item-inner"><div class="item-title">' + val.departTime + ' - ' + val.arriveTime + '</div><div class="item-after">';
             }
-            if(val.transfer){
+            if(val.transfer || val.doubleTransfer){
                 html += '<span class="trainTransfer">Transfer</span>';
             }
             html += '</div></div></a></li>';
@@ -299,23 +315,39 @@ var app = {
         var origin = stations[train.depart];
         var dest = stations[train.arrive];
 
+        $('.bartSpinner').css('bottom', '-220px');
+
         var mapOrigin = origin.name.replace(/ /g, '+') + "+bart";
         var mapDest = dest.name.replace(/ /g, '+') + "+bart";
-        $('.maps-link a .item-title').text('Directions to ' + origin.name);
+        $('.maps-link a .item-title').text('Directions to ' + origin.name + " Bart");
         $('.maps-link a').attr('href', 'https://www.google.com/maps?saddr=My+Location&daddr='+mapOrigin);
 //        $('.maps-link a').attr('href', 'https://www.google.com/maps/dir/'+mapOrigin+'/'+mapDest + '/data=!4m2!4m1!3e3');
         $('.sms-link').attr('share-data', encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase()));
 
-
+console.log(train);
         var html = '<p>depart from <span>'+origin.name+'</span></p>';
         html += '<p class="time-details">'+train.departTime+' - ';
-        if(train.transfer){
+        if(train.doubleTransfer){
             html += train.transferArrive + '</p>'
+//            html += '<p class="time-details" >'+ stations[train.trainTransferDestination].name +'</p>';
             html += '<p>transfer at <span>'+stations[train.transferStation].name+'</span></p>';
-            html += '<p class="time-details">'+train.transferDepart+' - ' + train.arriveTime + '</p>'
-        } else {
-            html += train.arriveTime + '</p>'
+            html += '<p class="time-details">'+train.transferDepart+' - ' + train.transfer2Arrive + '</p>';
+            html += '<p>transfer at <span>'+stations[train.transfer2Station].name+'</span></p>';
+
+//            html += '<p class="time-details" >'+ stations[train.trainDestination].name +'</p>';
+            html += '<p class="time-details">'+train.transfer2Depart+' - ';
         }
+//        if(train.doubleTransfer){
+//            html += train.transfer2Arrive + '</p>'
+//            html += '<p>transfer at <span>'+stations[train.transfer2Station].name+'</span></p>';
+//            html += '<p class="time-details">'+train.transfer2Depart+' - ' + train.arriveTime + '</p>';
+//
+//        }
+//        if(!train.transfer && !train.doubleTransfer) {
+            html += train.arriveTime + '</p>'
+//            html += '<p class="time-details" >'+ stations[train.trainDestination].name +'</p>';
+
+//        }
         html += '<p>arrive at <span>'+dest.name+'</span></p>';
 
         html += '<p class="costSpacer">&nbsp;</p><p>Total Cost: <span>'+ train.cost +'</span></p>'
@@ -451,6 +483,10 @@ var app = {
 
         $('.times-page-content').on('scroll', app.isScrolling);
 
+        $$('.panel-right').on('panel:close', function () {
+            $('.bartSpinner').css('bottom', '0');
+        });
+
         $('#bartInput').on('change', function(){
 //            if(timeout){
 //                clearTimeout(timeout);
@@ -463,6 +499,7 @@ var app = {
                 localStorage.setItem('stations', s);
                 timesArray.length = 0;
                 $('.times ul').empty();
+                displayDate = new Date();
                 app.getFullTrainTimes(s, schedule, true);
                 app.getDelayStatus(true)
 //            }, 500)

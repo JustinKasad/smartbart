@@ -152,6 +152,11 @@ h1 {
     bottom: 0;
 }
 
+.bartSpinner {
+    -webkit-transition: bottom .5s; /* Safari */
+    transition: bottom .5s;
+}
+
 .header {
     position: fixed;
     top: 0px;
@@ -244,13 +249,6 @@ i.fa.fa-subway:last-child {
 }
 .train-details .time-details{
     margin-left: 20px;
-}
-.train-information{
-    position: absolute;
-    margin: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
 }
 .sms-link, .maps-link {
     color: white;

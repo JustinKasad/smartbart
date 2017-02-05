@@ -408,7 +408,7 @@
                                "zipcode": "94066"
                            },
                            "SFIA": {
-                               "name": "San Francisco Int'l Airport",
+                               "name": "SFO Airport",
                                "abbr": "SFIA",
                                "gtfs_latitude": "37.616035",
                                "gtfs_longitude": "-122.392612",
