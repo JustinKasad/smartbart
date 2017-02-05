@@ -344,7 +344,15 @@ console.log(train);
 //
 //        }
 //        if(!train.transfer && !train.doubleTransfer) {
+
+        if(train.transfer && !train.doubleTransfer){
+            html += train.transferArrive + '</p>'
+            html += '<p>transfer at <span>'+stations[train.transferStation].name+'</span></p>';
+            html += '<p class="time-details">'+train.transferDepart+' - ' + train.arriveTime + '</p>'
+        } else {
             html += train.arriveTime + '</p>'
+        }
+
 //            html += '<p class="time-details" >'+ stations[train.trainDestination].name +'</p>';
 
 //        }
