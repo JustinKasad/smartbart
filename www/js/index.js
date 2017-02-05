@@ -319,8 +319,6 @@ var app = {
         var origin = stations[train.depart];
         var dest = stations[train.arrive];
 
-        $('.bartSpinner').addClass('hide');
-
         var mapOrigin = origin.name.replace(/ /g, '+') + "+bart";
         var mapDest = dest.name.replace(/ /g, '+') + "+bart";
         $('.maps-link a .item-title').text('Directions to ' + origin.name + " Bart");
@@ -328,7 +326,6 @@ var app = {
 //        $('.maps-link a').attr('href', 'https://www.google.com/maps/dir/'+mapOrigin+'/'+mapDest + '/data=!4m2!4m1!3e3');
         $('.sms-link').attr('share-data', encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase()));
 
-console.log(train);
         var html = '<p>depart from <span>'+origin.name+'</span></p>';
         html += '<p class="time-details">'+train.departTime+' - ';
         if(train.doubleTransfer){
@@ -341,13 +338,6 @@ console.log(train);
 //            html += '<p class="time-details" >'+ stations[train.trainDestination].name +'</p>';
             html += '<p class="time-details">'+train.transfer2Depart+' - ';
         }
-//        if(train.doubleTransfer){
-//            html += train.transfer2Arrive + '</p>'
-//            html += '<p>transfer at <span>'+stations[train.transfer2Station].name+'</span></p>';
-//            html += '<p class="time-details">'+train.transfer2Depart+' - ' + train.arriveTime + '</p>';
-//
-//        }
-//        if(!train.transfer && !train.doubleTransfer) {
 
         if(train.transfer && !train.doubleTransfer){
             html += train.transferArrive + '</p>'
@@ -495,8 +485,11 @@ console.log(train);
 
         $('.times-page-content').on('scroll', app.isScrolling);
 
-        $$('.panel-right').on('panel:close', function () {
+        $$('.panel').on('panel:close', function () {
             $('.bartSpinner').removeClass('hide')
+        });
+        $$('.panel').on('panel:open', function () {
+            $('.bartSpinner').addClass('hide')
         });
 
         $('#bartInput').on('change', function(){
