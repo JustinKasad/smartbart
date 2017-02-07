@@ -419,7 +419,7 @@ var app = {
         var dateHeight = $('.dateText').height();
         var $_dateText = $('.dateText.inline:not(.scrolledNorth)').first();
 
-        if($_dateText.length && $_dateText.position().top <= ($('.times-page-content').scrollTop() - (dateHeight*2))){
+        if($_dateText.length && $_dateText.position().top <= ($('.times-page-content').scrollTop() - (dateHeight))){
             $_dateText.addClass('scrolledNorth')
             dateTextArray.push($_dateText.text());
             $('.dateText.today').text($_dateText.text());
