@@ -26,6 +26,8 @@ var schedule;
 var currentTimeInMinutes;
 var timeout;
 var displayDate;
+var dateTextArray = [];
+var scrollLockForiOS = false;
 var app = {
     // Application Constructor
     initialize: function() {
@@ -131,6 +133,7 @@ var app = {
         if(append){
             $('.times ul').append('<div class="dateText inline">'+ dateString +'</div>');
         } else {
+            dateTextArray.push(dateString);
             $('.today.dateText').text(dateString);
         }
 
@@ -405,7 +408,7 @@ var app = {
     },
     isScrolling: function(){
         var dateHeight = $('.dateText').height();
-        var $_dateText = $('.dateText.inline:not(.stickied)').first();
+        var $_dateText = $('.dateText.inline:not(.scrolledNorth)').first();
 
 //        if($_dateText.length && $_dateText.position().top <= $('.times-page-content').scrollTop()){
 //            var top = $_dateText.offset().top - 24;
@@ -413,9 +416,16 @@ var app = {
 //            $('.dateText.stickied').css('top', top + 'px');
 //        }else
         if($_dateText.length && $_dateText.position().top <= ($('.times-page-content').scrollTop() - dateHeight)){
-            $_dateText.addClass('stickied').next().css('margin-top', dateHeight + 'px');
-        } else if($('.dateText.stickied:not(.today)').length && isScrolledIntoView($('.dateText.stickied:not(.today)').last().next())){
-            $('.dateText.stickied').last().removeClass('stickied').next().css('margin-top', '0');
+            $_dateText.addClass('scrolledNorth')
+            dateTextArray.push($_dateText.text());
+            $('.dateText.today').text($_dateText.text());
+//            $_dateText.addClass('stickied').next().css('margin-top', dateHeight + 'px');
+        } else if($('.dateText.scrolledNorth').length && isScrolledIntoView($('.dateText.scrolledNorth').last().next())){
+            $('.dateText.today').text(dateTextArray[dateTextArray.length - 2]);
+            dateTextArray.pop()
+            $('.dateText.scrolledNorth').last().removeClass('scrolledNorth');
+
+//            $('.dateText.stickied').last().removeClass('stickied').next().css('margin-top', '0');
         }
     },
     setEvents: function(){
