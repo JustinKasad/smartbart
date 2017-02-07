@@ -281,7 +281,13 @@ var app = {
               contentType: "text/xml; charset=\"utf-8\"",
               complete: function(xml) {
                  var result = xmlToJSON.parseString(xml.responseText);
-                 var data = result.root["0"].bsa["0"].description["0"]._text;
+                 var data = '';
+                 $.each(result.root["0"].bsa, function(key, val){
+                    data += val.description["0"]._text;
+                    if(result.root["0"].bsa.length > 1){
+                        data += "\n ";
+                    }
+                 })
                  $('.delayStatusExclamation').hide();
                  if(hideAlert && data != "No delays reported."){
                     $('.delayStatusExclamation').show();
@@ -413,7 +419,7 @@ var app = {
         var dateHeight = $('.dateText').height();
         var $_dateText = $('.dateText.inline:not(.scrolledNorth)').first();
 
-        if($_dateText.length && $_dateText.position().top <= ($('.times-page-content').scrollTop() - dateHeight)){
+        if($_dateText.length && $_dateText.position().top <= ($('.times-page-content').scrollTop() - (dateHeight*2))){
             $_dateText.addClass('scrolledNorth')
             dateTextArray.push($_dateText.text());
             $('.dateText.today').text($_dateText.text());
