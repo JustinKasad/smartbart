@@ -54,10 +54,6 @@ var app = {
     onDeviceReady: function() {
         StatusBar.styleDefault()
         var d = displayDate = new Date();
-        var month = d.getMonth() + 1;
-        var day = d.getDate();
-        var year = d.getFullYear();
-        schedule = year + "-" + ((d.getMonth()+1) < 10 ? ("0" + (d.getMonth()+1)) : (d.getMonth()+1)) + "-" + (day < 10 ? ("0" + day) : day);
 
         app.setCurrentTimeInMinutes();
         app.setDateString(d, false);
@@ -130,6 +126,13 @@ var app = {
         var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
         var dateString = days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate() + " " + d.getFullYear();
 
+        var month = d.getMonth() + 1;
+        var day = d.getDate();
+        var year = d.getFullYear();
+        schedule = year + "-" + ((d.getMonth()+1) < 10 ? ("0" + (d.getMonth()+1)) : (d.getMonth()+1)) + "-" + (day < 10 ? ("0" + day) : day);
+
+
+
         if(append){
             $('.times ul').append('<div class="dateText inline">'+ dateString +'</div>');
         } else {
@@ -138,7 +141,7 @@ var app = {
         }
 
     },
-    setSchedule: function(scheduleType){
+    setSchedule: function(scheduleType, dontTrigger){
         var d = new Date();
         var day = d.getDay();
 
@@ -163,21 +166,21 @@ var app = {
                 break;
 
         }
-
+        displayDate = d;
         var month = d.getMonth() + 1;
         var day = d.getDate();
         var year = d.getFullYear();
 
         schedule = year + "-" + ((d.getMonth()+1) < 10 ? ("0" + (d.getMonth()+1)) : (d.getMonth()+1)) + "-" + (day < 10 ? ("0" + day) : day);
-
+        app.setDateString(d, false);
         app.setScheduleDropdown(scheduleType);
         myApp.closePanel();
-        $('#bartInput').trigger('change');
+        $('#bartInput').trigger('change', [{dontUpdateDisplayDate:true}]);
 
     },
     setScheduleDropdown: function(scheduleType){
         $('.schedule-selected').addClass('schedule-set').removeClass('schedule-selected');
-        $('.schedule-set[data="'+scheduleType+'"]').removeClass('schedule-set').addClass('schedule-selected');
+        $('.schedule-set[data="'+scheduleType+'"]').removeClass('schedule-set').addClass('schedule-selected').show();
         $(".scheduleList i").addClass('fa-caret-down').removeClass('fa-caret-up');
         $('.schedule-set').hide();
     },
@@ -410,11 +413,6 @@ var app = {
         var dateHeight = $('.dateText').height();
         var $_dateText = $('.dateText.inline:not(.scrolledNorth)').first();
 
-//        if($_dateText.length && $_dateText.position().top <= $('.times-page-content').scrollTop()){
-//            var top = $_dateText.offset().top - 24;
-//            console.log($_dateText.offset().top);
-//            $('.dateText.stickied').css('top', top + 'px');
-//        }else
         if($_dateText.length && $_dateText.position().top <= ($('.times-page-content').scrollTop() - dateHeight)){
             $_dateText.addClass('scrolledNorth')
             dateTextArray.push($_dateText.text());
@@ -502,7 +500,8 @@ var app = {
             $('.bartSpinner').addClass('hide')
         });
 
-        $('#bartInput').on('change', function(){
+        $('#bartInput').on('change', function(e, data){
+            data = data || {};
 //            if(timeout){
 //                clearTimeout(timeout);
 //            }
@@ -513,8 +512,20 @@ var app = {
                 var s = currentStations = $('#bartInput').val();
                 localStorage.setItem('stations', s);
                 timesArray.length = 0;
+                dateTextArray.length = 0;
                 $('.times ul').empty();
-                displayDate = new Date();
+                if(!data.dontUpdateDisplayDate){
+                    displayDate = new Date();
+                    app.setDateString(displayDate, false);
+                    var day = displayDate.getDay();
+                    if(displayDate == 0){
+                        app.setScheduleDropdown('sunday');
+                    } else if(displayDate == 6){
+                        app.setScheduleDropdown('saturday');
+                    } else {
+                        app.setScheduleDropdown('weekday');
+                    }
+                }
                 app.getFullTrainTimes(s, schedule, true);
                 app.getDelayStatus(true)
 //            }, 500)
