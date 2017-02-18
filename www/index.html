@@ -77,6 +77,7 @@
 
 
     <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" type="text/css" href="css/bart-map.css" />
     <title>Bart Times</title>
 </head>
 
@@ -128,13 +129,6 @@
             </li>
         </ul>
         <ul>
-            <li class="bartMap-link">
-                <a href="" target="_blank" class="item-content item-link">
-                    <div class="item-title">View BART map</div>
-                </a>
-            </li>
-        </ul>
-        <ul>
             <li class="shareWithFriends">
                 <a class="item-content item-link">
                     <div class="item-title">Share with friends</div>
@@ -142,6 +136,7 @@
                 </a>
             </li>
         </ul>
+        <img class="bart_image_preview bartMap-link" src="img/bart_map.png"/>
     </div>
 </div>
 <!-- Right panel with cover effect-->
@@ -149,6 +144,9 @@
     <h2 class="train-info">Train info</h2>
     <div class="content-block train-details"></div>
     <div class="list-block train-information">
+        <div class="map-container bartMap-link">
+            <img class="bart_image_preview" src="img/bart_map.png"/>
+        </div>
         <ul>
             <li class="sms-link">
                 <a class="item-content item-link">
@@ -168,7 +166,8 @@
     </div>
 
 </div>
-<input id="bartInput">
+<input id="bartInput"/>
+<div id="bartInputContainer" ></div>
 
 <!-- Views-->
 <div class="views">
@@ -287,6 +286,7 @@
     <script type="text/javascript" src="js/my-app.js"></script>
     <script type="text/javascript" src="js/stations.js"></script>
     <script type="text/javascript" src="js/xml2json.js"></script>
+    <script type="text/javascript" src="js/imageMap.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
     <script type="text/javascript">
         app.initialize();

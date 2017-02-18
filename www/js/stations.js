@@ -1,7 +1,7 @@
 
         var stations = {
                            "12TH": {
-                               "name": "12th St. Oakland City Center",
+                               "name": "12th St. Oakland",
                                "abbr": "12TH",
                                "gtfs_latitude": "37.803664",
                                "gtfs_longitude": "-122.271604",
@@ -89,7 +89,7 @@
                                "zipcode": "94546"
                            },
                            "CIVC": {
-                               "name": "Civic Center/UN Plaza",
+                               "name": "Civic Center",
                                "abbr": "CIVC",
                                "gtfs_latitude": "37.779528",
                                "gtfs_longitude": "-122.413756",
@@ -353,7 +353,7 @@
                                "zipcode": "94565"
                            },
                            "PHIL": {
-                               "name": "Pleasant Hill/Contra Costa Centre",
+                               "name": "Pleasant Hill",
                                "abbr": "PHIL",
                                "gtfs_latitude": "37.928403",
                                "gtfs_longitude": "-122.056013",
