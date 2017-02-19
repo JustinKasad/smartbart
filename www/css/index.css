@@ -254,7 +254,7 @@ i.fa.fa-subway:last-child {
     font-weight: 600;
 }
 .train-details .time-details{
-    margin-left: 0px;
+    margin-left: 20px;
     margin-bottom: 0;
 }
 .train-details .time-details-towards {
@@ -381,7 +381,7 @@ i.fa.fa-subway:last-child {
     padding: 1px 5px;
     border-radius: 5px;
 }
-.trainTowards.PITT {
+.trainTowards.PITT, .trainTowards.SFIA {
     background-color: #ffff33;
     color: black;
 }

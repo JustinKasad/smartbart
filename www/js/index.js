@@ -29,6 +29,7 @@ var displayDate;
 var dateTextArray = [];
 var scrollLockForiOS = false;
 var offlineTimer;
+var dontUpdateDisplayDate = false
 var showingAlert = false;
 var app = {
     // Application Constructor
@@ -54,7 +55,7 @@ var app = {
             clearTimeout(offlineTimer);
         }
         if(!$('.times ul li').length){
-            $('#bartInput').trigger('change');
+            app.wheelChanged();
         }
     },
     offline: function(){
@@ -84,12 +85,12 @@ var app = {
         app.setDateString(d, false);
 
         var day = d.getDay();
-        if(d == 0){
-            app.setSchedule('sunday');
-        } else if(d == 6){
-            app.setSchedule('saturday');
+        if(day == 0){
+            app.setSchedule('sunday', true);
+        } else if(day == 6){
+            app.setSchedule('saturday', true);
         } else {
-            app.setSchedule('weekday');
+            app.setSchedule('weekday', true);
         }
 
         app.init('deviceready');
@@ -120,8 +121,9 @@ var app = {
             circular: true,
             cssClass: 'bartSpinner',
             onShow: function(){
-                        $('.toolbar-through .page-content').css('padding-bottom', $('.bartSpinner').height());
-                    },
+                $('.toolbar-through .page-content').css('padding-bottom', $('.bartSpinner').height());
+            },
+            onChange: app.wheelChanged,
             wheels: [
                 [{
                     label: 'Departs',
@@ -135,10 +137,11 @@ var app = {
         setTimeout(function(){
               if(localStorage && localStorage.getItem('stations')){
                   var stationsArray = localStorage.getItem('stations').split(' ');
-                  scroller.setArrayVal(stationsArray, true, true, false);
+                  scroller.setArrayVal(stationsArray, true, false, false);
               } else {
-                  scroller.setArrayVal(["12TH", "16TH"], true, true, false);
+                  scroller.setArrayVal(["12TH", "16TH"], true, false, false);
               }
+              app.wheelChanged();
         }, 200)
 
 
@@ -201,7 +204,11 @@ var app = {
         app.setDateString(d, false);
         app.setScheduleDropdown(scheduleType);
         myApp.closePanel();
-        $('#bartInput').trigger('change', [{dontUpdateDisplayDate:true}]);
+        dontUpdateDisplayDate = true;
+        if(dontTrigger){}
+        else {
+            app.wheelChanged();
+        }
 
     },
     setScheduleDropdown: function(scheduleType){
@@ -218,7 +225,6 @@ var app = {
         } else {
             $('.noTrains').hide();
         }
-
          var url = "http://www.bart.gov/schedules/extended?orig="+s[0]+"&dest="+s[1]+"&type=departure&date=" + fetchDate;
 //         var url = "../offline-schedule.htm";
          $.get( url, function( data ) {
@@ -381,24 +387,24 @@ var app = {
 
         if(train.doubleTransfer){
             var html = '<p><span>'+origin.name+'</span> to <span>'+stations[train.transferStation].name+'</span></p>';
-            html += '<p class="time-details">'+train.departTime+' - ' + train.transferArrive + '<span class="trainTowards '+train.trainTransfer2Destination+'">'+train.trainTransfer2Destination+' train<span></p>';
+            html += '<p class="time-details">'+train.departTime+' - ' + train.transferArrive + '<span class="trainTowards '+train.trainTransfer2Destination+'">'+train.trainTransfer2Destination+' train</span></p>';
             html += '<p><span>'+stations[train.transferStation].name+'</span> to <span>'+stations[train.transfer2Station].name+'</span></p>';
 //            html += '<p class="time-details-towards">towards '+stations[train.trainTransfer2Destination].name+'</p>';
 //            html += '<p class="time-details" >'+ stations[train.trainTransferDestination].name +'</p>';
 //            html += '<p>transfer at <span>'+stations[train.transferStation].name+'</span></p>';
-            html += '<p class="time-details">'+train.transferDepart+' - ' + train.transfer2Arrive + '<span class="trainTowards '+train.trainTransferDestination+'">'+train.trainTransferDestination+' train<span>' + '</p>';
+            html += '<p class="time-details">'+train.transferDepart+' - ' + train.transfer2Arrive + '<span class="trainTowards '+train.trainTransferDestination+'">'+train.trainTransferDestination+' train</span>' + '</p>';
             html += '<p><span>'+stations[train.transfer2Station].name+'</span> to <span>'+dest.name+'</span></p>';
 
 //            html += '<p class="time-details" >'+ stations[train.trainDestination].name +'</p>';
-            html += '<p class="time-details">'+train.transfer2Depart+' - ' + train.arriveTime + '<span class="trainTowards '+train.trainDestination+'">'+train.trainDestination+' train<span></p>';
+            html += '<p class="time-details">'+train.transfer2Depart+' - ' + train.arriveTime + '<span class="trainTowards '+train.trainDestination+'">'+train.trainDestination+' train</span></p>';
         }else if(train.transfer && !train.doubleTransfer){
             var html = '<p><span>'+origin.name+'</span> to <span>'+stations[train.transferStation].name+'</span></p>';
-            html += '<p class="time-details">'+train.departTime+' - ' + train.transferArrive + '<span class="trainTowards '+train.trainTransferDestination+'">'+train.trainTransferDestination+' train<span></p>'
+            html += '<p class="time-details">'+train.departTime+' - ' + train.transferArrive + '<span class="trainTowards '+train.trainTransferDestination+'">'+train.trainTransferDestination+' train</span></p>'
             html += '<p><span>'+stations[train.transferStation].name+'</span> to <span>'+dest.name+'</span></p>';
-            html += '<p class="time-details">'+train.transferDepart+' - ' + train.arriveTime + '<span class="trainTowards '+train.trainDestination+'">'+train.trainDestination+' train<span></p>'
+            html += '<p class="time-details">'+train.transferDepart+' - ' + train.arriveTime + '<span class="trainTowards '+train.trainDestination+'">'+train.trainDestination+' train</span></p>'
         } else {
             var html = '<p><span>'+origin.name+'</span> to <span>'+dest.name+'</span></p>';
-            html += '<p class="time-details">'+train.departTime+' - ' + train.arriveTime + '<span class="trainTowards '+train.trainDestination+'">'+train.trainDestination+' train<span></p>'
+            html += '<p class="time-details">'+train.departTime+' - ' + train.arriveTime + '<span class="trainTowards '+train.trainDestination+'">'+train.trainDestination+' train</span></p>'
         }
 
 //            html += '<p class="time-details" >'+ stations[train.trainDestination].name +'</p>';
@@ -477,6 +483,38 @@ var app = {
 //            $('.dateText.stickied').last().removeClass('stickied').next().css('margin-top', '0');
         }
     },
+    wheelChanged: function(event, inst){
+//          if(timeout){
+//              clearTimeout(timeout);
+//          }
+//          timeout = setTimeout(function(){
+              myApp.showIndicator();
+              $('.infinite-scroll-preloader').hide();
+              myApp.closePanel();
+              var s = currentStations = $('#bartInput').val();
+              localStorage.setItem('stations', s);
+              timesArray.length = 0;
+              dateTextArray.length = 0;
+              $('.times ul').empty();
+              if(!dontUpdateDisplayDate){
+                  displayDate = new Date();
+                  app.setDateString(displayDate, false);
+                  var day = displayDate.getDay();
+                  if(day == 0){
+                      app.setScheduleDropdown('sunday');
+                  } else if(day == 6){
+                      app.setScheduleDropdown('saturday');
+                  } else {
+                      app.setScheduleDropdown('weekday');
+                  }
+              } else {
+                dontUpdateDisplayDate = false;
+              }
+
+              app.getFullTrainTimes(s, schedule, true);
+              app.getDelayStatus(true)
+//          }, 500)
+      },
     setEvents: function(){
         $('body').on('click', '.time', function(){
             var index = $('.time').index(this)
@@ -487,6 +525,7 @@ var app = {
             var reverse = currentStations.split(' ');
             reverse = reverse.reverse();
             scroller.setArrayVal(reverse, true, true, false);
+            app.wheelChanged();
         });
         $('body').on('click', '.schedule-selected', function(){
             if($(".scheduleList i").hasClass('fa-caret-down')){
@@ -573,36 +612,6 @@ var app = {
             $('.bartSpinner').addClass('hide')
         });
 
-        $('#bartInput').on('change', function(e, data){
-            data = data || {};
-//            if(timeout){
-//                clearTimeout(timeout);
-//            }
-//            timeout = setTimeout(function(){
-                myApp.showIndicator();
-                $('.infinite-scroll-preloader').hide();
-                myApp.closePanel();
-                var s = currentStations = $('#bartInput').val();
-                localStorage.setItem('stations', s);
-                timesArray.length = 0;
-                dateTextArray.length = 0;
-                $('.times ul').empty();
-                if(!data.dontUpdateDisplayDate){
-                    displayDate = new Date();
-                    app.setDateString(displayDate, false);
-                    var day = displayDate.getDay();
-                    if(displayDate == 0){
-                        app.setScheduleDropdown('sunday');
-                    } else if(displayDate == 6){
-                        app.setScheduleDropdown('saturday');
-                    } else {
-                        app.setScheduleDropdown('weekday');
-                    }
-                }
-                app.getFullTrainTimes(s, schedule, true);
-                app.getDelayStatus(true)
-//            }, 500)
-        });
     }
 };
 function isScrolledIntoView(elem)
