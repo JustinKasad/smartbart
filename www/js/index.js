@@ -577,10 +577,38 @@ var app = {
                        var height = $('.map-marker').height();
                        var x = coords[0] - (height / 2);
                        var y = coords[1] - height;
-                       $('.map-marker-'+origin).css({left: x, top: y});
+                       if($('.map-marker-'+origin).length){
+                        $('.map-marker-'+origin).css({left: x, top: y});
+                       }
                     }, 500)
 
-                }
+                },
+                onTap: function(){
+                   $('map').imageMapResize()
+                   setTimeout(function(){
+                      var coords = $('area').first().attr('coords').split(',');
+                      var height = $('.map-marker').height();
+                      var x = coords[0] - (height / 2);
+                      var y = coords[1] - height;
+                     if($('.map-marker-'+origin).length){
+                         $('.map-marker-'+origin).css({left: x, top: y});
+                      }
+                   }, 500)
+
+               },
+                onDoubleTap: function(){
+                     $('map').imageMapResize()
+                     setTimeout(function(){
+                        var coords = $('area').first().attr('coords').split(',');
+                        var height = $('.map-marker').height();
+                        var x = coords[0] - (height / 2);
+                        var y = coords[1] - height;
+                       if($('.map-marker-'+origin).length){
+                            $('.map-marker-'+origin).css({left: x, top: y});
+                        }
+                     }, 500)
+
+                 }
             })
             myPhotoBrowserStandalone.open();
             myApp.closePanel();
