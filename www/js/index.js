@@ -667,7 +667,9 @@ var app = {
 myScroll = new IScroll('#mapContainer', {
     zoom: true,
     scrollX: true,
-    scrollY: true
+    scrollY: true,
+    mouseWheel: true,
+    wheelAction: 'zoom'
 });
 
 
