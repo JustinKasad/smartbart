@@ -663,6 +663,16 @@ var app = {
           $('.bartSpinner').removeClass('hide');
         });
 
+
+        var hammertime = new Hammer(".map-container-full", myOptions);
+        hammertime.get('pinch').set({ enable: true });
+
+        hammertime.on('pinch', function(ev) {
+        	setTimeout(function(){
+        	    alert('hi');
+        	}. 3000)
+        });
+
     }
 };
 function isScrolledIntoView(elem)
