@@ -371,10 +371,14 @@ i.fa.fa-subway:last-child {
 }
 .bart_image_full {
     width: 100%;
+    -webkit-transition: width .5s; /* Safari */
+    transition: width .5s;
 }
 .map-container-full {
     position: relative;
     top: 70%;
+    margin-top: 44px;
+
      -webkit-transform: translateY(-50%);
       -ms-transform: translateY(-50%);
       transform: translateY(-50%);
