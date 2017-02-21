@@ -664,7 +664,7 @@ var app = {
         });
 
 
-        var hammertime = new Hammer(".map-container-full", myOptions);
+        var hammertime = new Hammer(".mapContainer", myOptions);
         hammertime.get('pinch').set({ enable: true });
 
         hammertime.on('pinch', function(ev) {
