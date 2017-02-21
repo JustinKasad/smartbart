@@ -369,8 +369,15 @@ i.fa.fa-subway:last-child {
     margin: 30px auto;
     display: block;
 }
+.bart_image_full {
+    width: 100%;
+}
 .map-container-full {
     position: relative;
+    top: 70%;
+     -webkit-transform: translateY(-50%);
+      -ms-transform: translateY(-50%);
+      transform: translateY(-50%);
 
 }
 
@@ -380,6 +387,7 @@ i.fa.fa-subway:last-child {
     font-size: 12px;
     padding: 1px 5px;
     border-radius: 5px;
+    display: inline-block;
 }
 .trainTowards.PITT, .trainTowards.SFIA {
     background-color: #ffff33;

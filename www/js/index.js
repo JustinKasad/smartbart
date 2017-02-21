@@ -554,64 +554,66 @@ var app = {
             app.shareWithFriends();
         });
         $('body').on('click', '.bartMap-link', function(){
-            var html = '<div class="map-container-full"><img src="img/bart_map.png" usemap="#Map" /><map name="Map" id="Map"><area alt="" title="" href="#" shape="rect" coords="1667,101,1687,120" /><area alt="" title="" href="#" shape="rect" coords="1577,162,1591,177" /></map>';
-            if($(this).attr('data-origin')){
-                var origin = $(this).attr('data-origin');
-                var dest = $(this).attr('data-destination');
-                html += '<div class="map-marker map-marker-'+origin+'"></div>';
-                html += '<div class="map-marker map-marker-'+dest+'"></div>';
-            }
-            html += '</div>';
-            var myPhotoBrowserStandalone = myApp.photoBrowser({
-                photos : [
-                    {
-                        html: html
-                    }
-                ],
-                theme: 'dark',
-                toolbar: false,
-                onOpen: function(){
-                    $('map').imageMapResize()
-                    setTimeout(function(){
-                       var coords = $('area').first().attr('coords').split(',');
-                       var height = $('.map-marker').height();
-                       var x = coords[0] - (height / 2);
-                       var y = coords[1] - height;
-                       if($('.map-marker-'+origin).length){
-                        $('.map-marker-'+origin).css({left: x, top: y});
-                       }
-                    }, 500)
-
-                },
-                onTap: function(){
-                   $('map').imageMapResize()
-                   setTimeout(function(){
-                      var coords = $('area').first().attr('coords').split(',');
-                      var height = $('.map-marker').height();
-                      var x = coords[0] - (height / 2);
-                      var y = coords[1] - height;
-                     if($('.map-marker-'+origin).length){
-                         $('.map-marker-'+origin).css({left: x, top: y});
-                      }
-                   }, 500)
-
-               },
-                onDoubleTap: function(){
-                     $('map').imageMapResize()
-                     setTimeout(function(){
-                        var coords = $('area').first().attr('coords').split(',');
-                        var height = $('.map-marker').height();
-                        var x = coords[0] - (height / 2);
-                        var y = coords[1] - height;
-                       if($('.map-marker-'+origin).length){
-                            $('.map-marker-'+origin).css({left: x, top: y});
-                        }
-                     }, 500)
-
-                 }
-            })
-            myPhotoBrowserStandalone.open();
             myApp.closePanel();
+            mainView.router.load({pageName: 'bartMap'});
+//            var html = '<div class="map-container-full"><img src="img/bart_map.png" usemap="#Map" /><map name="Map" id="Map"><area alt="" title="" href="#" shape="rect" coords="1667,101,1687,120" /><area alt="" title="" href="#" shape="rect" coords="1577,162,1591,177" /></map>';
+//            if($(this).attr('data-origin')){
+//                var origin = $(this).attr('data-origin');
+//                var dest = $(this).attr('data-destination');
+//                html += '<div class="map-marker map-marker-'+origin+'"></div>';
+//                html += '<div class="map-marker map-marker-'+dest+'"></div>';
+//            }
+//            html += '</div>';
+//            var myPhotoBrowserStandalone = myApp.photoBrowser({
+//                photos : [
+//                    {
+//                        html: html
+//                    }
+//                ],
+//                theme: 'dark',
+//                toolbar: false,
+//                onOpen: function(){
+//                    $('map').imageMapResize()
+//                    setTimeout(function(){
+//                       var coords = $('area').first().attr('coords').split(',');
+//                       var height = $('.map-marker').height();
+//                       var x = coords[0] - (height / 2);
+//                       var y = coords[1] - height;
+//                       if($('.map-marker-'+origin).length){
+//                        $('.map-marker-'+origin).css({left: x, top: y});
+//                       }
+//                    }, 500)
+//
+//                },
+//                onTap: function(){
+//                   $('map').imageMapResize()
+//                   setTimeout(function(){
+//                      var coords = $('area').first().attr('coords').split(',');
+//                      var height = $('.map-marker').height();
+//                      var x = coords[0] - (height / 2);
+//                      var y = coords[1] - height;
+//                     if($('.map-marker-'+origin).length){
+//                         $('.map-marker-'+origin).css({left: x, top: y});
+//                      }
+//                   }, 500)
+//
+//               },
+//                onDoubleTap: function(){
+//                     $('map').imageMapResize()
+//                     setTimeout(function(){
+//                        var coords = $('area').first().attr('coords').split(',');
+//                        var height = $('.map-marker').height();
+//                        var x = coords[0] - (height / 2);
+//                        var y = coords[1] - height;
+//                       if($('.map-marker-'+origin).length){
+//                            $('.map-marker-'+origin).css({left: x, top: y});
+//                        }
+//                     }, 500)
+//
+//                 }
+//            })
+//            myPhotoBrowserStandalone.open();
+//            myApp.closePanel();
         });
         $('.infinite-scroll').on('infinite', function () {
             if (bottomLoading || !$('.times ul li').length) return;
@@ -637,7 +639,28 @@ var app = {
             $('.bartSpinner').removeClass('hide')
         });
         $$('.panel').on('panel:open', function () {
-            $('.bartSpinner').addClass('hide')
+            $('.bartSpinner').addClass('hide');
+        });
+        myApp.onPageBeforeAnimation('bartMap', function (page) {console.log('page open');
+          $('.bartSpinner').addClass('hide');
+          $('.map-marker').hide();
+        });
+        myApp.onPageAfterAnimation('bartMap', function (page) {console.log('page open');
+          setTimeout(function(){
+            $('map').imageMapResize();
+            setTimeout(function(){
+                var coords = $('area').first().attr('coords').split(',');
+                        var height = $('.map-marker').height();
+                        var x = coords[0] - (height / 2);
+                        var y = coords[1] - height;
+                        $('.map-marker').css({left: x, top: y}).fadeIn();;
+            },200)
+
+          }, 200)
+
+        });
+        myApp.onPageBack('bartMap', function (page) {console.log('page close');
+          $('.bartSpinner').removeClass('hide');
         });
 
     }
