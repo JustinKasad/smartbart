@@ -670,7 +670,7 @@ var app = {
         hammertime.on('pinch', function(ev) {
         	setTimeout(function(){
         	    alert('hi');
-        	}. 3000)
+        	}, 3000)
         });
 
     }
