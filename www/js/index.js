@@ -29,8 +29,10 @@ var displayDate;
 var dateTextArray = [];
 var scrollLockForiOS = false;
 var offlineTimer;
-var dontUpdateDisplayDate = false
+var dontUpdateDisplayDate = false;
 var showingAlert = false;
+var zoomed = false;
+
 var app = {
     // Application Constructor
     initialize: function() {
@@ -82,16 +84,16 @@ var app = {
         var d = displayDate = new Date();
 
         app.setCurrentTimeInMinutes();
-        app.setDateString(d, false);
-
-        var day = d.getDay();
-        if(day == 0){
-            app.setSchedule('sunday', true);
-        } else if(day == 6){
-            app.setSchedule('saturday', true);
-        } else {
-            app.setSchedule('weekday', true);
-        }
+//        app.setDateString(d, false);
+//
+//        var day = d.getDay();
+//        if(day == 0){
+//            app.setSchedule('sunday', true);
+//        } else if(day == 6){
+//            app.setSchedule('saturday', true);
+//        } else {
+//            app.setSchedule('weekday', true);
+//        }
 
         app.init('deviceready');
     },
@@ -121,7 +123,7 @@ var app = {
             circular: true,
             cssClass: 'bartSpinner',
             onShow: function(){
-                $('.toolbar-through .page-content').css('padding-bottom', $('.bartSpinner').height());
+                $('.toolbar-through .times-page-content').css('padding-bottom', $('.bartSpinner').height());
             },
             onChange: app.wheelChanged,
             wheels: [
@@ -158,7 +160,6 @@ var app = {
         var day = d.getDate();
         var year = d.getFullYear();
         schedule = year + "-" + ((d.getMonth()+1) < 10 ? ("0" + (d.getMonth()+1)) : (d.getMonth()+1)) + "-" + (day < 10 ? ("0" + day) : day);
-
 
 
         if(append){
@@ -336,7 +337,7 @@ var app = {
     displayTimes: function(trips, first){
         var hasSelected = false;
         $.each(trips, function(key, val){
-            if(first && !hasSelected && typeof trips[(key + 1)] != "undefined" && trips[(key)].timeInMinutes > currentTimeInMinutes){
+            if(first && !hasSelected && trips[(key)].timeInMinutes > currentTimeInMinutes){
                 var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time selected"><div class="item-inner"><div class="item-title">' + val.departTime + '&mdash; ' + val.arriveTime + '</div><div class="item-after">';
                 hasSelected = true;
             } else {
@@ -372,6 +373,8 @@ var app = {
 //                app.isScrolling();
 //            }, 150);
 
+        } else {
+            $('.times-page-content').scrollTop($(".time").last().offset().top);
         }
     },
     displayTrainData: function(train){
@@ -515,9 +518,42 @@ var app = {
               app.getDelayStatus(true)
 //          }, 500)
       },
+    setMapMarkers: function(fullScreen){
+        $('.map-marker').hide();
+          setTimeout(function(){
+            fullScreen ? $('#bartMap').imageMapResize() : $('#bartMapSmall').imageMapResize();
+            setTimeout(function(){
+                var currentStationsArray = currentStations.split(' ');
+                var height = fullScreen ? $('.map-container-full .map-marker').height() : $('.map-container .map-marker').height();
+                var coordsOrigin, x, y;
+                for(var i = 0; i < 2; i++){
+                    coordsOrigin = fullScreen ? $('#bartMap area[alt='+currentStationsArray[i]+']') : $('#bartMapSmall area[alt='+currentStationsArray[i]+']');
+                    coordsOrigin = coordsOrigin.attr('coords').split(',');
+                    x = parseInt(coordsOrigin[0]) - (height / 2);
+                    y = parseInt(coordsOrigin[1]) - height;
+                    fullScreen ? $($('.map-container-full .map-marker')[i]).css({left: x, top: y}).attr('data', currentStationsArray[i]).fadeIn() : $($('.map-container .map-marker')[i]).css({left: x, top: y}).attr('data', currentStationsArray[i]).fadeIn();
+                }
+//                $('#mapContainer .page-content').scrollLeft($(window).width() / 2);
+
+            },200)
+          }, 300)
+    },
+    zoomMap: function(){
+        if(zoomed){
+                    $(this).find('i').removeClass('fa-search-minus').addClass('fa-search-plus');
+                    $('.bart_image_full').css('width', '100%');
+                } else {
+                    $(this).find('i').removeClass('fa-search-plus').addClass('fa-search-minus');
+                    $('.bart_image_full').css('width', '250%');
+                }
+                $('.map-container-full').toggleClass('zoomed');
+                app.setMapMarkers(true);
+                zoomed = !zoomed;
+    },
     setEvents: function(){
         $('body').on('click', '.time', function(){
-            var index = $('.time').index(this)
+            var index = $('.time').index(this);
+            app.setMapMarkers(false);
             app.displayTrainData(timesArray[index]);
         });
         $('body').on('click', '.reverseTrip', function(){
@@ -555,65 +591,12 @@ var app = {
         });
         $('body').on('click', '.bartMap-link', function(){
             myApp.closePanel();
+            if($(this).closest('.panel-left').length){
+                $('.map-container-full').addClass('hideMarkers');
+            } else {
+                $('.map-container-full').removeClass('hideMarkers');
+            }
             mainView.router.load({pageName: 'bartMap'});
-//            var html = '<div class="map-container-full"><img src="img/bart_map.png" usemap="#Map" /><map name="Map" id="Map"><area alt="" title="" href="#" shape="rect" coords="1667,101,1687,120" /><area alt="" title="" href="#" shape="rect" coords="1577,162,1591,177" /></map>';
-//            if($(this).attr('data-origin')){
-//                var origin = $(this).attr('data-origin');
-//                var dest = $(this).attr('data-destination');
-//                html += '<div class="map-marker map-marker-'+origin+'"></div>';
-//                html += '<div class="map-marker map-marker-'+dest+'"></div>';
-//            }
-//            html += '</div>';
-//            var myPhotoBrowserStandalone = myApp.photoBrowser({
-//                photos : [
-//                    {
-//                        html: html
-//                    }
-//                ],
-//                theme: 'dark',
-//                toolbar: false,
-//                onOpen: function(){
-//                    $('map').imageMapResize()
-//                    setTimeout(function(){
-//                       var coords = $('area').first().attr('coords').split(',');
-//                       var height = $('.map-marker').height();
-//                       var x = coords[0] - (height / 2);
-//                       var y = coords[1] - height;
-//                       if($('.map-marker-'+origin).length){
-//                        $('.map-marker-'+origin).css({left: x, top: y});
-//                       }
-//                    }, 500)
-//
-//                },
-//                onTap: function(){
-//                   $('map').imageMapResize()
-//                   setTimeout(function(){
-//                      var coords = $('area').first().attr('coords').split(',');
-//                      var height = $('.map-marker').height();
-//                      var x = coords[0] - (height / 2);
-//                      var y = coords[1] - height;
-//                     if($('.map-marker-'+origin).length){
-//                         $('.map-marker-'+origin).css({left: x, top: y});
-//                      }
-//                   }, 500)
-//
-//               },
-//                onDoubleTap: function(){
-//                     $('map').imageMapResize()
-//                     setTimeout(function(){
-//                        var coords = $('area').first().attr('coords').split(',');
-//                        var height = $('.map-marker').height();
-//                        var x = coords[0] - (height / 2);
-//                        var y = coords[1] - height;
-//                       if($('.map-marker-'+origin).length){
-//                            $('.map-marker-'+origin).css({left: x, top: y});
-//                        }
-//                     }, 500)
-//
-//                 }
-//            })
-//            myPhotoBrowserStandalone.open();
-//            myApp.closePanel();
         });
         $('.infinite-scroll').on('infinite', function () {
             if (bottomLoading || !$('.times ul li').length) return;
@@ -643,55 +626,18 @@ var app = {
         });
         myApp.onPageBeforeAnimation('bartMap', function (page) {console.log('page open');
           $('.bartSpinner').addClass('hide');
-          $('.map-marker').hide();
+//          $('.map-marker').hide();
         });
         myApp.onPageAfterAnimation('bartMap', function (page) {console.log('page open');
-          setTimeout(function(){
-            $('map').imageMapResize();
-            setTimeout(function(){
-                var coords = $('area').first().attr('coords').split(',');
-                        var height = $('.map-marker').height();
-                        var x = coords[0] - (height / 2);
-                        var y = coords[1] - height;
-                        $('.map-marker').css({left: x, top: y}).fadeIn();;
-            },200)
-
-          }, 200)
+            app.setMapMarkers(true);
 
         });
         myApp.onPageBack('bartMap', function (page) {console.log('page close');
           $('.bartSpinner').removeClass('hide');
         });
 
-        var zoomed = false;
-myScroll = new IScroll('#mapContainer', {
-    zoom: true,
-    scrollX: true,
-    scrollY: true,
-    mouseWheel: true,
-    wheelAction: 'zoom'
-});
 
-
-//        Hammer(document.getElementById("mapContainer")).on("doubletap", function() {
-//            if(zoomed){
-//                $('.bart_image_full').css('width', '100%');
-//            } else {
-//                $('.bart_image_full').css('width', '250%');
-//            }
-//            zoomed = !zoomed;
-//            setTimeout(function(){
-//                        $('map').imageMapResize();
-//                        setTimeout(function(){
-//                            var coords = $('area').first().attr('coords').split(',');
-//                                    var height = $('.map-marker').height();
-//                                    var x = coords[0] - (height / 2);
-//                                    var y = coords[1] - height;
-//                                    $('.map-marker').css({left: x, top: y}).fadeIn();;
-//                        },200)
-//
-//                      }, 500)
-//        });
+        $('.zoom-link').on('click', app.zoomMap)
     }
 };
 function isScrolledIntoView(elem)
