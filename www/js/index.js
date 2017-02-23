@@ -473,8 +473,11 @@ var app = {
         var dateHeight = $('.dateText').height();
         var $_dateText = $('.dateText.inline:not(.scrolledNorth)').first();
 
-        if($_dateText.length && $_dateText.position().top <= ($('.times-page-content').scrollTop() - (dateHeight))){
-            $_dateText.addClass('scrolledNorth')
+        if($_dateText.length && $_dateText.position().top <= ($('.times-page-content').scrollTop() - (device.platform == "iOS" ? (dateHeight*2) : dateHeight))){
+            $_dateText.addClass('scrolledNorth');
+            if(!dateTextArray.length){
+                dateTextArray.push($('.dateText.today').text());
+            }
             dateTextArray.push($_dateText.text());
             $('.dateText.today').text($_dateText.text());
 //            $_dateText.addClass('stickied').next().css('margin-top', dateHeight + 'px');
