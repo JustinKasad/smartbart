@@ -403,7 +403,7 @@ i.fa.fa-subway:last-child {
       -ms-transform: translateY(-50%);
       transform: translateY(-50%);
 }
-.map-container-full.hideMarkers .map-marker{
+.hideMarkers .map-marker{
     display: none !important;
 }
 
@@ -415,25 +415,15 @@ i.fa.fa-subway:last-child {
     border-radius: 5px;
     display: inline-block;
 }
-.trainTowards.PITT, .trainTowards.SFIA {
-    background-color: #ffff33;
-    color: black;
-}
-.trainTowards.DUBL {
-    background-color: #0099cc;
-    color: black;
-}
-.trainTowards.FRMT {
-    background-color: #ff9933;
-    color: black;
-}
-.trainTowards.RICH {
-    background-color: #ff0000;
-    color: black;
-}
+
 .zoom-link {
     font-size: 24px;
 }
 i.icon.icon-back {
     background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2012%2020'%3E%3Cpath%20d%3D'M10%2C0l2%2C2l-8%2C8l8%2C8l-2%2C2L0%2C10L10%2C0z'%20fill%3D'%2331b6e7'%2F%3E%3C%2Fsvg%3E")
+}
+.train-details-on-map {
+    margin-top: 10px;
+    text-align: center;
+    padding: 0 15px;
 }

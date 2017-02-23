@@ -250,11 +250,14 @@ var app = {
                     obj.transferArrive = $_children[4].textContent;
                     obj.transferDepart = $_children[6].textContent;
                     obj.trainTransferDestination = $($_children[2]).find('img').attr('alt') == "WARM" ? "FRMT" : $($_children[2]).find('img').attr('alt');
+                    obj.trainTransferDestinationColor = $($_children[2]).attr('bgcolor');
                     obj.transfer2Station = $_children[8].textContent.trim();
                     obj.transfer2Arrive = $_children[9].textContent;
                     obj.transfer2Depart = $_children[11].textContent;
                     obj.trainTransfer2Destination = $($_children[7]).find('img').attr('alt') == "WARM" ? "FRMT" : $($_children[7]).find('img').attr('alt');
+                    obj.trainTransfer2DestinationColor = $($_children[7]).attr('bgcolor');
                     obj.trainDestination = $($_children[12]).find('img').attr('alt') == "WARM" ? "FRMT" : $($_children[12]).find('img').attr('alt');
+                    obj.trainDestinationColor = $($_children[12]).attr('bgcolor');
                     obj.arrive = $_children[13].textContent.trim();
                     obj.arriveTime = $_children[14].textContent;
                 }else if($_children[8].textContent.trim().length){
@@ -263,13 +266,16 @@ var app = {
                     obj.transferArrive = $_children[4].textContent;
                     obj.transferDepart = $_children[6].textContent;
                     obj.trainTransferDestination = $($_children[2]).find('img').attr('alt') == "WARM" ? "FRMT" : $($_children[2]).find('img').attr('alt');
+                    obj.trainTransferDestinationColor = $($_children[2]).attr('bgcolor');
                     obj.trainDestination = $($_children[7]).find('img').attr('alt') == "WARM" ? "FRMT" : $($_children[7]).find('img').attr('alt');
+                    obj.trainDestinationColor = $($_children[7]).attr('bgcolor');
                     obj.arrive = $_children[8].textContent.trim();
                     obj.arriveTime = $_children[9].textContent;
                 } else {
                     obj.arrive = $_children[3].textContent.trim();
                     obj.arriveTime = $_children[4].textContent;
                     obj.trainDestination = $($_children[2]).find('img').attr('alt') == "WARM" ? "FRMT" : $($_children[2]).find('img').attr('alt');
+                    obj.trainDestinationColor = $($_children[2]).attr('bgcolor');
                 }
                 obj.cost = cost;
 
@@ -390,29 +396,22 @@ var app = {
 
         if(train.doubleTransfer){
             var html = '<p><span>'+origin.name+'</span> to <span>'+stations[train.transferStation].name+'</span></p>';
-            html += '<p class="time-details">'+train.departTime+' - ' + train.transferArrive + '<span class="trainTowards '+train.trainTransfer2Destination+'">'+train.trainTransfer2Destination+' train</span></p>';
+            html += '<p class="time-details">'+train.departTime+' - ' + train.transferArrive + '<span class="trainTowards" style="background: '+train.trainTransfer2DestinationColor+'">'+train.trainTransfer2Destination+' train</span></p>';
             html += '<p><span>'+stations[train.transferStation].name+'</span> to <span>'+stations[train.transfer2Station].name+'</span></p>';
-//            html += '<p class="time-details-towards">towards '+stations[train.trainTransfer2Destination].name+'</p>';
-//            html += '<p class="time-details" >'+ stations[train.trainTransferDestination].name +'</p>';
-//            html += '<p>transfer at <span>'+stations[train.transferStation].name+'</span></p>';
-            html += '<p class="time-details">'+train.transferDepart+' - ' + train.transfer2Arrive + '<span class="trainTowards '+train.trainTransferDestination+'">'+train.trainTransferDestination+' train</span>' + '</p>';
+            html += '<p class="time-details">'+train.transferDepart+' - ' + train.transfer2Arrive + '<span class="trainTowards" style="background: '+train.trainTransferDestinationColor+'">'+train.trainTransferDestination+' train</span>' + '</p>';
             html += '<p><span>'+stations[train.transfer2Station].name+'</span> to <span>'+dest.name+'</span></p>';
-
-//            html += '<p class="time-details" >'+ stations[train.trainDestination].name +'</p>';
-            html += '<p class="time-details">'+train.transfer2Depart+' - ' + train.arriveTime + '<span class="trainTowards '+train.trainDestination+'">'+train.trainDestination+' train</span></p>';
+            html += '<p class="time-details">'+train.transfer2Depart+' - ' + train.arriveTime + '<span class="trainTowards" style="background: '+train.trainDestinationColor+'">'+train.trainDestination+' train</span></p>';
         }else if(train.transfer && !train.doubleTransfer){
             var html = '<p><span>'+origin.name+'</span> to <span>'+stations[train.transferStation].name+'</span></p>';
-            html += '<p class="time-details">'+train.departTime+' - ' + train.transferArrive + '<span class="trainTowards '+train.trainTransferDestination+'">'+train.trainTransferDestination+' train</span></p>'
+            html += '<p class="time-details">'+train.departTime+' - ' + train.transferArrive + '<span class="trainTowards" style="background: '+train.trainTransferDestinationColor+'">'+train.trainTransferDestination+' train</span></p>'
             html += '<p><span>'+stations[train.transferStation].name+'</span> to <span>'+dest.name+'</span></p>';
-            html += '<p class="time-details">'+train.transferDepart+' - ' + train.arriveTime + '<span class="trainTowards '+train.trainDestination+'">'+train.trainDestination+' train</span></p>'
+            html += '<p class="time-details">'+train.transferDepart+' - ' + train.arriveTime + '<span class="trainTowards" style="background: '+train.trainDestinationColor+'">'+train.trainDestination+' train</span></p>'
         } else {
             var html = '<p><span>'+origin.name+'</span> to <span>'+dest.name+'</span></p>';
-            html += '<p class="time-details">'+train.departTime+' - ' + train.arriveTime + '<span class="trainTowards '+train.trainDestination+'">'+train.trainDestination+' train</span></p>'
+            html += '<p class="time-details">'+train.departTime+' - ' + train.arriveTime + '<span class="trainTowards" style="background: '+train.trainDestinationColor+'">'+train.trainDestination+' train</span></p>'
         }
 
-//            html += '<p class="time-details" >'+ stations[train.trainDestination].name +'</p>';
 
-//        }
 
         html += '<p class="costSpacer">&nbsp;</p><p>Total Cost: <span>'+ train.cost +'</span></p>'
 
@@ -595,6 +594,7 @@ var app = {
         $('body').on('click', '.bartMap-link', function(){
             myApp.closePanel();
             if($(this).closest('.panel-left').length){
+                $('.train-details-on-map').empty();
                 $('.map-container-full').addClass('hideMarkers');
             } else {
                 $('.map-container-full').removeClass('hideMarkers');

@@ -4,6 +4,7 @@
     top: 0;
     width: 35px;
     height: 35px;
+    z-index: 600;
     background-size: contain;
     background-image: url(../img/mapmarker-green.png);
     display: none;
