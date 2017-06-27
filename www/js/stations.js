@@ -462,6 +462,17 @@
                                "state": "CA",
                                "zipcode": "94587"
                            },
+                           "WARM": {
+                               "name": "Warm Springs / South Fremont",
+                               "abbr": "WARM",
+                               "gtfs_latitude": "37.502171",
+                               "gtfs_longitude": "-121.939313",
+                               "address": "45193 Warm Springs Blvd",
+                               "city": "Fremont",
+                               "county": "alameda",
+                               "state": "CA",
+                               "zipcode": "94539"
+                           },
                            "WCRK": {
                                "name": "Walnut Creek",
                                "abbr": "WCRK",
