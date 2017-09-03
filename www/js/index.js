@@ -17,7 +17,7 @@
  * under the License.
  */
 var timesArray = [];
-var scroller;
+var pickerInline;
 var count = 0;
 var bottomLoading = false;
 var arrayToDisplay = [];
@@ -108,40 +108,89 @@ var app = {
     init: function(id) {
       myApp.showIndicator();
       var abbrs = [];
-
+      var names = [];
       for (var key in stations) {
-        abbrs.push({
-            value: key,
-            display: stations[key]["name"]
-        });
+        abbrs.push(key);
+        names.push(stations[key]["name"]);
       }
 
-        scroller = mobiscroll.scroller('#bartInput', {
-            theme: 'android-holo',
-            display: 'inline',
-            showLabel: true,
-            circular: true,
+        // scroller = mobiscroll.scroller('#bartInput', {
+        //     theme: 'android-holo',
+        //     display: 'inline',
+        //     showLabel: true,
+        //     circular: true,
+        //     cssClass: 'bartSpinner',
+        //     onShow: function(){
+        //         $('.toolbar-through .times-page-content').css('padding-bottom', $('.bartSpinner').height());
+        //     },
+        //     onChange: app.wheelChanged,
+        //     wheels: [
+        //         [{
+        //             label: 'Departs',
+        //             data: abbrs
+        //         },{
+        //             label: 'Arrives',
+        //             data: abbrs
+        //         },]
+        //     ]
+        // });
+
+        pickerInline = myApp.picker({
+            input: '#bartInput',
+            container: '#bartInputContainer',
             cssClass: 'bartSpinner',
-            onShow: function(){
-                $('.toolbar-through .times-page-content').css('padding-bottom', $('.bartSpinner').height());
+            toolbar: true,
+            rotateEffect: true,
+            momentumRatio: 7,
+            value: ["16TH","24TH"],
+            toolbarTemplate: `<div class="toolbar">
+                                  <div class="toolbar-inner">
+                                    <div class="left">
+                                        <a>Departs</a>
+                                    </div>
+                                    <div class="right">
+                                      <a>Arrives</a>
+                                    </div>
+                                  </div>
+                                </div> `,
+            onChange: debounce(function() {
+            	app.wheelChanged();
+            }, 250),
+
+            formatValue: function (p, values, displayValues) {
+                return values[0] + ' ' + values[1];
             },
-            onChange: app.wheelChanged,
-            wheels: [
-                [{
-                    label: 'Departs',
-                    data: abbrs
-                },{
-                    label: 'Arrives',
-                    data: abbrs
-                },]
+
+            cols: [
+                // Months
+                {
+                    values: abbrs,
+                    displayValues: names,
+                    textAlign: 'center',
+                    cssClass: 'bartItem'
+                },
+                {
+                    divider: true,
+                    content: '→'
+                },
+                // Days
+                {
+                    values: abbrs,
+                    displayValues: names,
+                    textAlign: 'center',
+                    cssClass: 'bartItem'
+                },
             ]
         });
+
         setTimeout(function(){
               if(localStorage && localStorage.getItem('stations')){
                   var stationsArray = localStorage.getItem('stations').split(' ');
-                  scroller.setArrayVal(stationsArray, true, false, false);
+                  pickerInline.setValue(stationsArray, 0)
+                //   scroller.setArrayVal(stationsArray, true, false, false);
               } else {
-                  scroller.setArrayVal(["12TH", "16TH"], true, false, false);
+                  pickerInline.setValue(["12TH", "16TH"], 0)
+                //   scroller.setArrayVal(["12TH", "16TH"], true, false, false);
               }
               app.wheelChanged();
         }, 200)
@@ -378,7 +427,7 @@ var app = {
 //                app.isScrolling();
 //            }, 150);
 
-        } else {
+        } else if($(".time").last().length){
             $('.times-page-content').scrollTop($(".time").last().offset().top);
         }
     },
@@ -391,7 +440,7 @@ var app = {
         $('.maps-link a .item-title').text('Directions to ' + origin.name + " Bart");
         $('.maps-link a').attr('href', 'https://www.google.com/maps?saddr=My+Location&daddr='+mapOrigin);
 //        $('.maps-link a').attr('href', 'https://www.google.com/maps/dir/'+mapOrigin+'/'+mapDest + '/data=!4m2!4m1!3e3');
-        $('.sms-link').attr('share-data', encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase()));
+        $('.sms-link').attr('share-data', encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase() + " - via SmartBart"));
 
         if(train.doubleTransfer){
             var html = '<p><span>'+origin.name+'</span> to <span>'+stations[train.transferStation].name+'</span></p>';
@@ -488,10 +537,7 @@ var app = {
         }
     },
     wheelChanged: function(event, inst){
-//          if(timeout){
-//              clearTimeout(timeout);
-//          }
-//          timeout = setTimeout(function(){
+
               myApp.showIndicator();
               $('.infinite-scroll-preloader').hide();
               myApp.closePanel();
@@ -517,7 +563,6 @@ var app = {
 
               app.getFullTrainTimes(s, schedule, true);
               app.getDelayStatus(true)
-//          }, 500)
       },
     setMapMarkers: function(fullScreen){
         $('.map-marker').hide();
@@ -561,7 +606,7 @@ var app = {
             myApp.showIndicator();
             var reverse = currentStations.split(' ');
             reverse = reverse.reverse();
-            scroller.setArrayVal(reverse, true, true, false);
+            pickerInline.setValue(reverse, 500)
             app.wheelChanged();
         });
         $('body').on('click', '.schedule-selected', function(){
@@ -621,13 +666,13 @@ var app = {
         $('.times-page-content').on('scroll', app.isScrolling);
 
         $$('.panel').on('panel:close', function () {
-            $('.bartSpinner').removeClass('hide')
+            $('#bartInputContainer').removeClass('hide')
         });
         $$('.panel').on('panel:open', function () {
-            $('.bartSpinner').addClass('hide');
+            $('#bartInputContainer').addClass('hide');
         });
         myApp.onPageBeforeAnimation('bartMap', function (page) {console.log('page open');
-          $('.bartSpinner').addClass('hide');
+          $('#bartInputContainer').addClass('hide');
 //          $('.map-marker').hide();
         });
         myApp.onPageAfterAnimation('bartMap', function (page) {console.log('page open');
@@ -635,7 +680,7 @@ var app = {
 
         });
         myApp.onPageBack('bartMap', function (page) {console.log('page close');
-          $('.bartSpinner').removeClass('hide');
+          $('#bartInputContainer').removeClass('hide');
         });
 
 
@@ -648,3 +693,22 @@ function isScrolledIntoView(elem)
     var elemTop = $(elem).offset().top;
     return elemTop >= (docViewTop + 70);
 }
+
+// Returns a function, that, as long as it continues to be invoked, will not
+// be triggered. The function will be called after it stops being called for
+// N milliseconds. If `immediate` is passed, trigger the function on the
+// leading edge, instead of the trailing.
+function debounce(func, wait, immediate) {
+	var timeout;
+	return function() {
+		var context = this, args = arguments;
+		var later = function() {
+			timeout = null;
+			if (!immediate) func.apply(context, args);
+		};
+		var callNow = immediate && !timeout;
+		clearTimeout(timeout);
+		timeout = setTimeout(later, wait);
+		if (callNow) func.apply(context, args);
+	};
+};

@@ -12,6 +12,6 @@
     "ecosystem:cordova",
     "cordova:template",
     "phonegap:template"
-  ]
-
+  ],
+  "dependencies": {}
 }
