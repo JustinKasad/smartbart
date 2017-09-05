@@ -346,6 +346,7 @@ i.fa.fa-subway:last-child {
 }
 .times-page-content.page-content {
     padding-top: 68px;
+    padding-bottom: 210px;
     -webkit-overflow-scrolling: touch;
 }
 .panel .list-block .item-title {
