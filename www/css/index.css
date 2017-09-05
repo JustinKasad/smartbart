@@ -468,3 +468,9 @@ i.icon.icon-back {
 .picker-item.picker-selected {
     color: white;
 }
+.bartItem {
+    -webkit-overflow-scrolling: touch;
+}
+.bartItem .picker-items-col-wrapper {
+    -webkit-overflow-scrolling: touch;
+}

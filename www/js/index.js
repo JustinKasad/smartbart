@@ -154,7 +154,7 @@ var app = {
                                   </div>
                                 </div> `,
             onChange: debounce(function() {
-            	app.wheelChanged();
+            	// app.wheelChanged();
             }, 250),
 
             formatValue: function (p, values, displayValues) {
