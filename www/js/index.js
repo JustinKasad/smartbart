@@ -192,7 +192,7 @@ var app = {
                   pickerInline.setValue(["12TH", "16TH"], 0)
                 //   scroller.setArrayVal(["12TH", "16TH"], true, false, false);
               }
-            //   app.wheelChanged();
+              app.wheelChanged();
         }, 200)
 
 
