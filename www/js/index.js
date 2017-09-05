@@ -154,8 +154,8 @@ var app = {
                                   </div>
                                 </div> `,
             onChange: debounce(function() {
-            	// app.wheelChanged();
-            }, 250),
+            	app.wheelChanged();
+            }, 500),
 
             formatValue: function (p, values, displayValues) {
                 return values[0] + ' ' + values[1];
@@ -192,7 +192,7 @@ var app = {
                   pickerInline.setValue(["12TH", "16TH"], 0)
                 //   scroller.setArrayVal(["12TH", "16TH"], true, false, false);
               }
-              app.wheelChanged();
+            //   app.wheelChanged();
         }, 200)
 
 
