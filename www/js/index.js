@@ -536,7 +536,7 @@ var app = {
 //            $('.dateText.stickied').last().removeClass('stickied').next().css('margin-top', '0');
         }
     },
-    wheelChanged: function(event, inst){
+    wheelChanged: function(){
 
               myApp.showIndicator();
               $('.infinite-scroll-preloader').hide();
