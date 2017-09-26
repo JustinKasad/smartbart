@@ -24,7 +24,8 @@ var arrayToDisplay = [];
 var currentStations = [];
 var schedule;
 var currentTimeInMinutes;
-var timeout;
+var timeout = false;
+var autoUpdateInterval = false;
 var displayDate;
 var dateTextArray = [];
 var scrollLockForiOS = false;
@@ -32,6 +33,7 @@ var offlineTimer;
 var dontUpdateDisplayDate = false;
 var showingAlert = false;
 var zoomed = false;
+var autoUpdate = true;
 
 var app = {
     // Application Constructor
@@ -292,8 +294,109 @@ var app = {
                 arrayToDisplay.push(obj);
             })
             app.displayTimes(arrayToDisplay, first);
+
+
          });
     },
+
+    getRealTimeDelays: function(trip){
+        var url = "http://api.bart.gov/api/etd.aspx?cmd=etd&orig="+trip.depart+"&key=MW9S-E7SL-26DU-VV8V&json=y";
+        var arrival = (trip.doubleTransfer || trip.transfer) ? trip.trainTransferDestination : trip.trainDestination;
+        $.get( url, function( data ) {
+            if(trip.depart != data.root.station[0].abbr){
+                return;
+            }
+            $.each(data.root.station[0].etd, function(key, val){
+                if(val.abbreviation == arrival){
+                    var time = data.root.date + " " + data.root.time
+                    app.addDelays(val.estimate, time);
+                }
+            });
+        })
+    },
+    addDelays: function(estimates, time){
+
+        var index = $('.times .selected').parent().index();
+
+
+        $.each(estimates, function(key, val){
+
+            var currentTime = new Date(time);
+            var secondsDelayed = parseInt(val.delay);
+            if(currentTime != "Invalid Date"){
+                var newTime = currentTime;
+                newTime.setMinutes(newTime.getMinutes() + parseInt(val.minutes));
+                newTime.setSeconds(newTime.getSeconds() + secondsDelayed);
+
+                var ampm= 'am',
+                h= newTime.getHours(),
+                m= newTime.getMinutes(),
+                s= newTime.getSeconds();
+                if(h>= 12){
+                    if(h>12) h -= 12;
+                    ampm= 'pm';
+                }
+                if(m<10) m= '0'+m;
+                if(s<10) s= '0'+s;
+
+                var oldTime = $($('.times li')[index + key]).find('.departTime').text();
+                if (key == 0) console.log(h + ":" + m + ":" + s);
+                if(secondsDelayed > 0){
+                    var newTimeString = "<span class='delayedMinutes'>" + h + ":" + m + ":"+ s +"</span> " + ampm + "";
+
+                } else {
+                    var newTimeString = "<span>" + h + ":" + m + ":" + s + "</span> " + ampm + "";
+                }
+                $($('.times li')[index + key]).find('.departTime').fadeOut(function(){
+                    $($('.times li')[index + key]).find('.departTime').html(newTimeString);
+                    $($('.times li')[index + key]).find('.departTime').fadeIn();
+
+                })
+
+            }
+        })
+    },
+    addDelaysLegacy: function(estimates){
+        $.each(estimates, function(key, val){
+            // val.delay = 350;
+            var minutesDelayed = parseInt(Math.floor(val.delay / 60));
+            if( minutesDelayed > 0){
+                var index = $('.times .selected').parent().index();
+                var date = $($('.times li')[index + key]).find('.departTime');
+                if(date.attr('date-original')){
+                    date = date.attr('date-original');
+                } else {
+                    date = date.text();
+                }
+                var originalDate = date;
+
+                date = date.split(' ');
+                var ampm = date[1];
+                date = date[0].split(':');
+                var min = date[1];
+                var hour = date[0];
+                min = parseInt(min) + minutesDelayed;
+                if(min > 59){
+                    hour = hour + 1;
+                    min = min - 60;
+                }
+                if(hour > 12){
+                    hour = 1;
+                    if(ampm == 'am'){
+                        ampm = 'pm';
+                    }
+                }
+                if(min.toString().length == 1){
+                    min = "0" + min;
+                }
+
+                $($('.times li')[index + key]).find('.departTime').attr('data-original', originalDate).html("<span class='delayedTime'>" + hour + ":" + min + " " + ampm + "</span>");
+
+            }
+        });
+
+    },
+
     getElevatorStatus: function(){
          var url = "http://api.bart.gov/api/bsa.aspx?cmd=elev&key=MW9S-E7SL-26DU-VV8V"
          $.ajax({
@@ -340,31 +443,58 @@ var app = {
 
     },
     displayTimes: function(trips, first){
-        var hasSelected = false;
         $.each(trips, function(key, val){
-            if(first && !hasSelected && trips[(key)].timeInMinutes > currentTimeInMinutes){
-                var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time selected"><div class="item-inner"><div class="item-title">' + val.departTime + '&mdash; ' + val.arriveTime + '</div><div class="item-after">';
-                hasSelected = true;
-            } else {
-                var html = '<li><a data-panel="right" href="#" class="open-panel item-content item-link time"><div class="item-inner"><div class="item-title">' + val.departTime + '&mdash; ' + val.arriveTime + '</div><div class="item-after">';
-            }
+
+            var html = '<li><a data-id="' + key + '" data-panel="right" href="#" class="open-panel item-content item-link time"><div class="item-inner"><div class="item-title"><span class="departTime">' + val.departTime + '</span>&mdash; ' + val.arriveTime + '</div><div class="item-after">';
+
             if(val.transfer || val.doubleTransfer){
                 html += '<span class="trainTransfer">Transfer</span>';
             }
             html += '</div></div></a></li>';
             $('.times ul').append(html);
         });
-        if(first){
-            this.scrollToCurrentTime();
-        }
+
         if(!first){
             bottomLoading = false;
         }
+
 //        $('.times-page-content').animate({
 //            scrollTop: $(".time.selected").offset().top - ($('.times-page-content').height() / 2)
 //        }, 500);
         $('.infinite-scroll-preloader').show();
         myApp.hideIndicator();
+
+
+        if(first){
+            app.setCurrentTimeInMinutes();
+            app.updateNextTrain(trips);
+            app.scrollToCurrentTime();
+            if(autoUpdateInterval){
+                clearInterval(autoUpdateInterval);
+            }
+            autoUpdateInterval = setInterval(function(){
+                if(!autoUpdate) return;
+                app.setCurrentTimeInMinutes();
+                app.updateNextTrain(trips);
+            }, 15000)
+        }
+
+
+    },
+    updateNextTrain: function(trips){
+        var hasSelected = false;
+        var selectedObj = null;
+
+        $.each(trips, function(key, val){
+            if(!hasSelected && trips[(key)].timeInMinutes > currentTimeInMinutes){
+                $('.times li a').removeClass('selected');
+                $('.times li a[data-id='+key+']').addClass('selected');
+                hasSelected = true;
+                selectedObj = trips[key];
+            }
+        });
+
+        app.getRealTimeDelays(selectedObj);
     },
     scrollToCurrentTime: function(){
         if($(".time.selected").length){
@@ -488,10 +618,10 @@ var app = {
         }
     },
     wheelChanged: function(event, inst){
-//          if(timeout){
-//              clearTimeout(timeout);
-//          }
-//          timeout = setTimeout(function(){
+         if(timeout){
+             clearTimeout(timeout);
+         }
+         timeout = setTimeout(function(){
               myApp.showIndicator();
               $('.infinite-scroll-preloader').hide();
               myApp.closePanel();
@@ -514,10 +644,11 @@ var app = {
               } else {
                 dontUpdateDisplayDate = false;
               }
-
+              autoUpdate = true;
               app.getFullTrainTimes(s, schedule, true);
-              app.getDelayStatus(true)
-//          }, 500)
+              app.getDelayStatus(true);
+
+         }, 750)
       },
     setMapMarkers: function(fullScreen){
         $('.map-marker').hide();
@@ -614,8 +745,9 @@ var app = {
                 var day = displayDate.getDate();
                 var year = displayDate.getFullYear();
                 var tempSchedule = year + "-" + ((displayDate.getMonth()+1) < 10 ? ("0" + (displayDate.getMonth()+1)) : (displayDate.getMonth()+1)) + "-" + (day < 10 ? ("0" + day) : day);
+                autoUpdate = false;
                 app.getFullTrainTimes(currentStations, tempSchedule, false);
-            }, 1000);
+            }, 600);
         });
 
         $('.times-page-content').on('scroll', app.isScrolling);
