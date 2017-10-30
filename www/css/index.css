@@ -431,3 +431,10 @@ i.icon.icon-back {
     color: red;
     font-weight: bold;
 }
+.delayedMinutes.leaving {
+    text-transform: capitalize;
+    color: black;
+}
+.realTime + .initialTime {
+    display: none;
+}

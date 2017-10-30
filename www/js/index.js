@@ -34,6 +34,8 @@ var dontUpdateDisplayDate = false;
 var showingAlert = false;
 var zoomed = false;
 var autoUpdate = true;
+var stopRealTime = false;
+var realTimeArrivals = {};
 
 var app = {
     // Application Constructor
@@ -299,33 +301,54 @@ var app = {
          });
     },
 
-    getRealTimeDelays: function(trip){
+    getRealTimeDelays: function(trips, selectedKey){
+        var trip = trips[selectedKey];
         var url = "http://api.bart.gov/api/etd.aspx?cmd=etd&orig="+trip.depart+"&key=MW9S-E7SL-26DU-VV8V&json=y";
-        var arrival = (trip.doubleTransfer || trip.transfer) ? trip.trainTransferDestination : trip.trainDestination;
         $.get( url, function( data ) {
             if(trip.depart != data.root.station[0].abbr){
                 return;
             }
-            $.each(data.root.station[0].etd, function(key, val){
-                if(val.abbreviation == arrival){
-                    var time = data.root.date + " " + data.root.time
-                    app.addDelays(val.estimate, time);
+
+            var time = data.root.date + " " + data.root.time;
+
+            var remainingTrips = trips.slice(selectedKey, trips.length);
+            for (var property in realTimeArrivals) {
+                if (realTimeArrivals.hasOwnProperty(property)) {
+                    realTimeArrivals[property] = 0;
                 }
+            }
+
+            $.each(remainingTrips, function(key, val){
+                var arrival = (val.doubleTransfer || val.transfer) ? val.trainTransferDestination : val.trainDestination;
+                $.each(data.root.station[0].etd, function(uselessKey, val){
+                    if(!stopRealTime && (val.abbreviation == arrival || (val.abbreviation == 'FRMT' && arrival == 'WARM'))){
+                        if(realTimeArrivals[arrival] < val.estimate.length){
+                            app.addDelays(val.estimate[realTimeArrivals[arrival]], time, (selectedKey + key));
+                            realTimeArrivals[arrival]++;
+                        } else {
+                            stopRealTime = true;
+                        }
+                    }
+                });
             });
+
+
         })
     },
-    addDelays: function(estimates, time){
+    addDelays: function(estimate, time, index){
+        var currentTime = new Date(time);
+        var secondsDelayed = parseInt(estimate.delay);
+        if(currentTime != "Invalid Date"){
+            var newTime = new Date(currentTime.getTime());
+            if(estimate.minutes == 'Leaving'){
+                stopRealTime = true;
+                $('.realTime').remove();
+                return;
+                var newTimeString = "<span class='delayedMinutes leaving'>Leaving</span> ";
+                $($('.times li')[index]).find('.departTime').html(newTimeString);
 
-        var index = $('.times .selected').parent().index();
-
-
-        $.each(estimates, function(key, val){
-
-            var currentTime = new Date(time);
-            var secondsDelayed = parseInt(val.delay);
-            if(currentTime != "Invalid Date"){
-                var newTime = currentTime;
-                newTime.setMinutes(newTime.getMinutes() + parseInt(val.minutes));
+            } else {
+                newTime.setMinutes(newTime.getMinutes() + parseInt(estimate.minutes));
                 newTime.setSeconds(newTime.getSeconds() + secondsDelayed);
 
                 var ampm= 'am',
@@ -339,22 +362,26 @@ var app = {
                 if(m<10) m= '0'+m;
                 if(s<10) s= '0'+s;
 
-                var oldTime = $($('.times li')[index + key]).find('.departTime').text();
-                if (key == 0) console.log(h + ":" + m + ":" + s);
+
                 if(secondsDelayed > 0){
-                    var newTimeString = "<span class='delayedMinutes'>" + h + ":" + m + ":"+ s +"</span> " + ampm + "";
+                    var newTimeString = "<span class='realTime'><span class='delayedMinutes'>" + h + ":" + m + ":"+ s +"</span> " + ampm + "</span>";
 
                 } else {
-                    var newTimeString = "<span>" + h + ":" + m + ":" + s + "</span> " + ampm + "";
+                    var newTimeString = "<span class='realTime'>" + h + ":" + m + ":" + s + " " + ampm + "</span>";
                 }
-                $($('.times li')[index + key]).find('.departTime').fadeOut(function(){
-                    $($('.times li')[index + key]).find('.departTime').html(newTimeString);
-                    $($('.times li')[index + key]).find('.departTime').fadeIn();
-
-                })
+                var oldHTML = $($('.times li')[index]).find('.departTime').html();
+                $($('.times li')[index]).find('.departTime').html(newTimeString + oldHTML);
 
             }
-        })
+            var oldTime = $($('.times li')[index]).find('.departTime').text();
+            if (true || key == 0) {
+                console.log(oldTime + " --> " + h + ":" + m + ":" + s, index);
+            }
+
+
+        }
+
+
     },
     addDelaysLegacy: function(estimates){
         $.each(estimates, function(key, val){
@@ -444,8 +471,10 @@ var app = {
     },
     displayTimes: function(trips, first){
         $.each(trips, function(key, val){
+            var realTimeArrival = (val.doubleTransfer || val.transfer) ? val.trainTransferDestination : val.trainDestination;
+            realTimeArrivals[realTimeArrival] = 0;
 
-            var html = '<li><a data-id="' + key + '" data-panel="right" href="#" class="open-panel item-content item-link time"><div class="item-inner"><div class="item-title"><span class="departTime">' + val.departTime + '</span>&mdash; ' + val.arriveTime + '</div><div class="item-after">';
+            var html = '<li><a data-realTimeArrival="'+realTimeArrival+'" data-id="' + key + '" data-panel="right" href="#" class="open-panel item-content item-link time"><div class="item-inner"><div class="item-title"><span class="departTime"><span class="initialTime">' + val.departTime + '</span></span>&mdash; ' + val.arriveTime + '</div><div class="item-after">';
 
             if(val.transfer || val.doubleTransfer){
                 html += '<span class="trainTransfer">Transfer</span>';
@@ -474,6 +503,7 @@ var app = {
             }
             autoUpdateInterval = setInterval(function(){
                 if(!autoUpdate) return;
+                stopRealTime = false;
                 app.setCurrentTimeInMinutes();
                 app.updateNextTrain(trips);
             }, 15000)
@@ -483,18 +513,19 @@ var app = {
     },
     updateNextTrain: function(trips){
         var hasSelected = false;
-        var selectedObj = null;
+        var selectedKey = null;
 
         $.each(trips, function(key, val){
             if(!hasSelected && trips[(key)].timeInMinutes > currentTimeInMinutes){
+                $('.realTime').remove();
                 $('.times li a').removeClass('selected');
                 $('.times li a[data-id='+key+']').addClass('selected');
                 hasSelected = true;
-                selectedObj = trips[key];
+                selectedKey = key;
             }
         });
 
-        app.getRealTimeDelays(selectedObj);
+        app.getRealTimeDelays(trips, selectedKey);
     },
     scrollToCurrentTime: function(){
         if($(".time.selected").length){
@@ -521,7 +552,7 @@ var app = {
         $('.maps-link a .item-title').text('Directions to ' + origin.name + " Bart");
         $('.maps-link a').attr('href', 'https://www.google.com/maps?saddr=My+Location&daddr='+mapOrigin);
 //        $('.maps-link a').attr('href', 'https://www.google.com/maps/dir/'+mapOrigin+'/'+mapDest + '/data=!4m2!4m1!3e3');
-        $('.sms-link').attr('share-data', encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase()));
+        $('.sms-link').attr('share-data', encodeURIComponent("I will be arriving at " + dest.name + " Bart Station at " + train.arriveTime.replace(' ', '').toLowerCase() + "."));
 
         if(train.doubleTransfer){
             var html = '<p><span>'+origin.name+'</span> to <span>'+stations[train.transferStation].name+'</span></p>';
